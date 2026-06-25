@@ -1,0 +1,22 @@
+{
+  "layers": {
+    "foundation": [
+      "astra_status",
+      "astra_types",
+      "astra_result",
+      "astra_version",
+      "astra_build_info"
+    ],
+    "runtime": [
+      "astra_event_types",
+      "astra_event_id"
+    ],
+    "services": [],
+    "application": []
+  },
+  "forbidden": [
+    {"from": "foundation", "to": "runtime"},
+    {"from": "foundation", "to": "services"},
+    {"from": "runtime", "to": "services"}
+  ]
+}
