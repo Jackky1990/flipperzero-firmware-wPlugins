@@ -13,7 +13,8 @@
       "astra_registry",
       "astra_handler",
       "astra_event_lifecycle",
-      "astra_event_bus"
+      "astra_event_bus",
+      "astra_runtime_loop"
     ],
     "services": [],
     "application": []
