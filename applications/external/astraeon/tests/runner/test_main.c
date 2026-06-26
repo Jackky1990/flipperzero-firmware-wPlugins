@@ -19,6 +19,7 @@ int main(void) {
     run_test("event_builder", astra_test_event_builder);
     run_test("event_queue", astra_test_event_queue);
     run_test("runtime", astra_test_runtime);
+    run_test("dispatcher", astra_test_dispatcher);
 
     printf("----------------------\n");
     printf("%d / %d PASSED\n", passed, total);
