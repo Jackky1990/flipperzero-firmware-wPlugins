@@ -27,6 +27,7 @@ int main(void) {
     run_test("runtime_loop", astra_test_runtime_loop);
     run_test("runtime_pipeline", astra_test_runtime_pipeline);
     run_test("scheduler", astra_test_scheduler);
+    run_test("runtime_context", astra_test_runtime_context);
     run_test("event_source", astra_test_event_source);
 
     printf("----------------------\n");
