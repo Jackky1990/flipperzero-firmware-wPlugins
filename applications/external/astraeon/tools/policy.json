@@ -14,7 +14,8 @@
       "astra_handler",
       "astra_event_lifecycle",
       "astra_event_bus",
-      "astra_runtime_loop"
+      "astra_runtime_loop",
+      "astra_scheduler"
     ],
     "services": [],
     "application": []
