@@ -40,19 +40,6 @@ typedef enum {
     AstraEventTypeUnknown,
 } AstraEventType;
 
-typedef struct {
-    AstraEventId id;
-    AstraEventType type;
-    AstraEventCategory category;
-    AstraTimestamp timestamp;
-    AstraModuleType source_module;
-    AstraDeviceId source_device;
-    AstraDeviceId target_device;
-    void* payload;
-    unsigned int payload_size;
-    AstraStatus status;
-} AstraEvent;
-
 const char* astra_event_category_to_string(AstraEventCategory category);
 const char* astra_event_type_to_string(AstraEventType type);
 
