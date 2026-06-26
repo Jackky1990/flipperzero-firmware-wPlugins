@@ -25,6 +25,7 @@ int main(void) {
     run_test("event_lifecycle", astra_test_event_lifecycle);
     run_test("event_bus", astra_test_event_bus);
     run_test("runtime_loop", astra_test_runtime_loop);
+    run_test("runtime_pipeline", astra_test_runtime_pipeline);
 
     printf("----------------------\n");
     printf("%d / %d PASSED\n", passed, total);

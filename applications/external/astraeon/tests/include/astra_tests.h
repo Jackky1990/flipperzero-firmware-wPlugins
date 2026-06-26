@@ -12,4 +12,5 @@ bool astra_test_handler(void);
 bool astra_test_event_lifecycle(void);
 bool astra_test_event_bus(void);
 bool astra_test_runtime_loop(void);
+bool astra_test_runtime_pipeline(void);
 bool astra_test_run_all(void);
