@@ -2,12 +2,11 @@
 
 #include "astra_result.h"
 #include "astra_event.h"
+#include "astra_handler.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef AstraResult (*AstraEventHandler)(AstraEvent* event);
 
 AstraResult astra_registry_init(void);
 

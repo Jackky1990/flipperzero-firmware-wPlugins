@@ -10,7 +10,8 @@
     "runtime": [
       "astra_event_types",
       "astra_event_id",
-      "astra_registry"
+      "astra_registry",
+      "astra_handler"
     ],
     "services": [],
     "application": []

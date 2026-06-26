@@ -21,6 +21,7 @@ int main(void) {
     run_test("runtime", astra_test_runtime);
     run_test("dispatcher", astra_test_dispatcher);
     run_test("registry", astra_test_registry);
+    run_test("handler", astra_test_handler);
 
     printf("----------------------\n");
     printf("%d / %d PASSED\n", passed, total);
