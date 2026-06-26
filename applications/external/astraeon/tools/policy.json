@@ -12,7 +12,8 @@
       "astra_event_id",
       "astra_registry",
       "astra_handler",
-      "astra_event_lifecycle"
+      "astra_event_lifecycle",
+      "astra_event_bus"
     ],
     "services": [],
     "application": []

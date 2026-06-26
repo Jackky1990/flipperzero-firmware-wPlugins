@@ -23,6 +23,7 @@ int main(void) {
     run_test("registry", astra_test_registry);
     run_test("handler", astra_test_handler);
     run_test("event_lifecycle", astra_test_event_lifecycle);
+    run_test("event_bus", astra_test_event_bus);
 
     printf("----------------------\n");
     printf("%d / %d PASSED\n", passed, total);
