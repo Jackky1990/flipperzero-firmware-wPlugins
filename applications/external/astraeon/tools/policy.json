@@ -9,14 +9,24 @@
     ],
     "runtime": [
       "astra_event_types",
-      "astra_event_id"
+      "astra_event_id",
+      "astra_registry"
     ],
     "services": [],
     "application": []
   },
   "forbidden": [
-    {"from": "foundation", "to": "runtime"},
-    {"from": "foundation", "to": "services"},
-    {"from": "runtime", "to": "services"}
+    {
+      "from": "foundation",
+      "to": "runtime"
+    },
+    {
+      "from": "foundation",
+      "to": "services"
+    },
+    {
+      "from": "runtime",
+      "to": "services"
+    }
   ]
 }
