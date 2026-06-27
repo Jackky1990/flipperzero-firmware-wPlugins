@@ -1,12 +1,12 @@
 #include "astra_scheduler.h"
 #include "astra_event_queue.h"
 #include "astra_event_bus.h"
+#include "astra_runtime_default.h"
 
 typedef struct {
     AstraEventQueue queue;
 } AstraSchedulerStore;
 
-static AstraSchedulerStore default_scheduler;
 static AstraSchedulerStore context_scheduler;
 
 static AstraSchedulerStore* astra_scheduler_store_from_context(AstraRuntimeContext* context) {
@@ -49,15 +49,15 @@ static AstraResult astra_scheduler_store_step(AstraSchedulerStore* store) {
 }
 
 AstraResult astra_scheduler_init(void) {
-    return astra_scheduler_store_init(&default_scheduler);
+    return astra_scheduler_init_context(astra_runtime_default_context());
 }
 
 AstraResult astra_scheduler_schedule(const AstraEvent* event) {
-    return astra_scheduler_store_schedule(&default_scheduler, event);
+    return astra_scheduler_schedule_context(astra_runtime_default_context(), event);
 }
 
 AstraResult astra_scheduler_step(void) {
-    return astra_scheduler_store_step(&default_scheduler);
+    return astra_scheduler_step_context(astra_runtime_default_context());
 }
 
 AstraResult astra_scheduler_init_context(AstraRuntimeContext* context) {
