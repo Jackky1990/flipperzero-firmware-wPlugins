@@ -17,7 +17,8 @@
       "astra_runtime_loop",
       "astra_scheduler",
       "astra_event_source",
-      "astra_runtime_context"
+      "astra_runtime_context",
+      "astra_runtime_default"
     ],
     "services": [],
     "application": []

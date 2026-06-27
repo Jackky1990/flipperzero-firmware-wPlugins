@@ -16,4 +16,5 @@ bool astra_test_runtime_pipeline(void);
 bool astra_test_scheduler(void);
 bool astra_test_runtime_context(void);
 bool astra_test_event_source(void);
+bool astra_test_runtime_default(void);
 bool astra_test_run_all(void);
