@@ -1,4 +1,5 @@
 #include "astra_registry.h"
+#include "astra_runtime_default.h"
 #include <stdbool.h>
 #include <string.h>
 
@@ -14,7 +15,6 @@ typedef struct {
     AstraRegistryEntry entries[ASTRA_REGISTRY_MAX_ENTRIES];
 } AstraRegistryStore;
 
-static AstraRegistryStore default_registry;
 
 static AstraRegistryStore* astra_registry_store_from_context(AstraRuntimeContext* context) {
     if(!context) {
@@ -78,16 +78,15 @@ static AstraEventHandler astra_registry_store_find(
 }
 
 AstraResult astra_registry_init(void) {
-    astra_registry_store_reset(&default_registry);
-    return astra_result_ok();
+    return astra_registry_init_context(astra_runtime_default_context());
 }
 
 AstraResult astra_registry_register(AstraEventType type, AstraEventHandler handler) {
-    return astra_registry_store_register(&default_registry, type, handler);
+    return astra_registry_register_context(astra_runtime_default_context(), type, handler);
 }
 
 AstraEventHandler astra_registry_find(AstraEventType type) {
-    return astra_registry_store_find(&default_registry, type);
+    return astra_registry_find_context(astra_runtime_default_context(), type);
 }
 
 AstraResult astra_registry_init_context(AstraRuntimeContext* context) {

@@ -2,17 +2,22 @@
 #include "astra_registry.h"
 #include "astra_handler.h"
 #include "astra_event_lifecycle.h"
+#include "astra_runtime_default.h"
 
 AstraResult astra_dispatcher_init(void) {
-    return astra_result_ok();
+    return astra_dispatcher_init_context(astra_runtime_default_context());
 }
 
 AstraResult astra_dispatcher_dispatch(AstraEvent* event) {
+    return astra_dispatcher_dispatch_context(astra_runtime_default_context(), event);
+}
+
+static AstraResult astra_dispatcher_dispatch_internal(AstraRuntimeContext* context, AstraEvent* event) {
     if(!event) {
         return astra_result_error(AstraStatusInvalidArgument, "event is null");
     }
 
-    AstraEventHandler handler = astra_registry_find(event->type);
+    AstraEventHandler handler = astra_registry_find_context(context, event->type);
     if(!handler) {
         astra_event_lifecycle_mark_failed(event);
         return astra_result_error(AstraStatusNotFound, "handler not found");
@@ -35,7 +40,7 @@ AstraResult astra_dispatcher_init_context(AstraRuntimeContext* context) {
         return astra_result_error(AstraStatusInvalidArgument, "context is null");
     }
 
-    return astra_dispatcher_init();
+    return astra_result_ok();
 }
 
 AstraResult astra_dispatcher_dispatch_context(AstraRuntimeContext* context, AstraEvent* event) {
@@ -43,5 +48,5 @@ AstraResult astra_dispatcher_dispatch_context(AstraRuntimeContext* context, Astr
         return astra_result_error(AstraStatusInvalidArgument, "context is null");
     }
 
-    return astra_dispatcher_dispatch(event);
+    return astra_dispatcher_dispatch_internal(context, event);
 }

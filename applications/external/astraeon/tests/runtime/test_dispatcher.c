@@ -17,6 +17,8 @@ static AstraResult astra_test_dispatcher_handler(AstraEvent* event) {
 
 bool astra_test_dispatcher(void) {
     AstraEvent event;
+    AstraRuntimeContext context;
+
     handler_called = false;
 
     if(astra_registry_init().status != AstraStatusOk) {
@@ -39,11 +41,11 @@ bool astra_test_dispatcher(void) {
         return false;
     }
 
-    if(astra_event_builder_init(&event, AstraEventTypeStatus).status != AstraStatusOk) {
+    if(astra_registry_register(AstraEventTypeStatus, astra_test_dispatcher_handler).status != AstraStatusOk) {
         return false;
     }
 
-    if(astra_registry_register(AstraEventTypeStatus, astra_test_dispatcher_handler).status != AstraStatusOk) {
+    if(astra_event_builder_init(&event, AstraEventTypeStatus).status != AstraStatusOk) {
         return false;
     }
 
@@ -51,11 +53,12 @@ bool astra_test_dispatcher(void) {
         return false;
     }
 
-    if(!(handler_called && event.state == AstraEventStateCompleted)) {
+    if(!handler_called || event.state != AstraEventStateCompleted) {
         return false;
     }
 
-    AstraRuntimeContext context;
+    handler_called = false;
+
     if(astra_runtime_context_init(&context).status != AstraStatusOk) {
         return false;
     }
@@ -64,13 +67,37 @@ bool astra_test_dispatcher(void) {
         return false;
     }
 
-    if(astra_dispatcher_init_context(&context).status != AstraStatusOk) {
-        return false;
-    }
-
     if(astra_dispatcher_dispatch_context(0, &event).status != AstraStatusInvalidArgument) {
         return false;
     }
 
-    return astra_dispatcher_dispatch_context(&context, &event).status == AstraStatusOk;
+    if(astra_registry_init_context(&context).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_dispatcher_init_context(&context).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_event_builder_init(&event, AstraEventTypeStatus).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_dispatcher_dispatch_context(&context, &event).status != AstraStatusNotFound) {
+        return false;
+    }
+
+    if(astra_registry_register_context(&context, AstraEventTypeStatus, astra_test_dispatcher_handler).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_event_builder_init(&event, AstraEventTypeStatus).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_dispatcher_dispatch_context(&context, &event).status != AstraStatusOk) {
+        return false;
+    }
+
+    return handler_called && event.state == AstraEventStateCompleted;
 }
