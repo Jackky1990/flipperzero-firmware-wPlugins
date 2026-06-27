@@ -29,3 +29,19 @@ AstraResult astra_dispatcher_dispatch(AstraEvent* event) {
     astra_event_lifecycle_mark_completed(event);
     return astra_result_ok();
 }
+
+AstraResult astra_dispatcher_init_context(AstraRuntimeContext* context) {
+    if(!context) {
+        return astra_result_error(AstraStatusInvalidArgument, "context is null");
+    }
+
+    return astra_dispatcher_init();
+}
+
+AstraResult astra_dispatcher_dispatch_context(AstraRuntimeContext* context, AstraEvent* event) {
+    if(!context) {
+        return astra_result_error(AstraStatusInvalidArgument, "context is null");
+    }
+
+    return astra_dispatcher_dispatch(event);
+}

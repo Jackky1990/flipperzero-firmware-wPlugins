@@ -2,6 +2,7 @@
 #include "astra_dispatcher.h"
 #include "astra_event_builder.h"
 #include "astra_registry.h"
+#include "astra_runtime_context.h"
 
 static bool handler_called = false;
 
@@ -50,5 +51,26 @@ bool astra_test_dispatcher(void) {
         return false;
     }
 
-    return handler_called && event.state == AstraEventStateCompleted;
+    if(!(handler_called && event.state == AstraEventStateCompleted)) {
+        return false;
+    }
+
+    AstraRuntimeContext context;
+    if(astra_runtime_context_init(&context).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_dispatcher_init_context(0).status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astra_dispatcher_init_context(&context).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_dispatcher_dispatch_context(0, &event).status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    return astra_dispatcher_dispatch_context(&context, &event).status == AstraStatusOk;
 }
