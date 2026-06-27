@@ -1,4 +1,4 @@
-from . import doctor, check_api, check_deps, build, status, test, contract
+from . import doctor, check_api, check_deps, build, status, test, contract, architecture
 
 def run_command():
     if doctor.run_command() != 0:
@@ -12,6 +12,8 @@ def run_command():
     if test.run_command() != 0:
         return 1
     if contract.run_command() != 0:
+        return 1
+    if architecture.run_command() != 0:
         return 1
     status.run_command()
     print("\nAEP VERIFY PASSED")

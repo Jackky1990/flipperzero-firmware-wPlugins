@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-from commands import doctor, check_api, check_deps, build, status, verify, test, contract
+from commands import doctor, check_api, check_deps, build, status, verify, test, contract, architecture
 
 COMMANDS = {
     "doctor": doctor.run_command,
@@ -11,11 +11,12 @@ COMMANDS = {
     "verify": verify.run_command,
     "test": test.run_command,
     "contract": contract.run_command,
+    "architecture": architecture.run_command,
 }
 
 def main():
     if len(sys.argv) < 2:
-        print("usage: aep.py [doctor|check-api|check-deps|build|status|test|contract|verify]")
+        print("usage: aep.py [doctor|check-api|check-deps|build|status|test|contract|architecture|verify]")
         return 2
 
     cmd = sys.argv[1]
