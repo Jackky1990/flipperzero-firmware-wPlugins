@@ -3,6 +3,7 @@
 #include "astra_event_builder.h"
 #include "astra_event_bus.h"
 #include "astra_registry.h"
+#include "astra_runtime_context.h"
 
 static bool scheduler_handler_called = false;
 
@@ -17,6 +18,7 @@ static AstraResult astra_test_scheduler_handler(AstraEvent* event) {
 
 bool astra_test_scheduler(void) {
     AstraEvent event;
+    AstraRuntimeContext context;
     scheduler_handler_called = false;
 
     if(astra_registry_init().status != AstraStatusOk) return false;
@@ -38,6 +40,30 @@ bool astra_test_scheduler(void) {
     }
 
     if(astra_scheduler_step().status != AstraStatusOk) {
+        return false;
+    }
+
+    if(!scheduler_handler_called) {
+        return false;
+    }
+
+    scheduler_handler_called = false;
+
+    if(astra_runtime_context_init(&context).status != AstraStatusOk) return false;
+    if(astra_scheduler_init_context(0).status != AstraStatusInvalidArgument) return false;
+    if(astra_scheduler_init_context(&context).status != AstraStatusOk) return false;
+
+    if(astra_scheduler_step_context(&context).status != AstraStatusNotFound) return false;
+
+    if(astra_event_builder_init(&event, AstraEventTypeStatus).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_scheduler_schedule_context(&context, &event).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_scheduler_step_context(&context).status != AstraStatusOk) {
         return false;
     }
 
