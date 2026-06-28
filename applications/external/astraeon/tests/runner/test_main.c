@@ -33,6 +33,8 @@ int main(void) {
     run_test("runtime_manager", astra_test_runtime_manager);
     run_test("runtime_isolation", astra_test_runtime_isolation);
     run_test("runtime_message", astra_test_runtime_message);
+    run_test("runtime_transport", astra_test_runtime_transport);
+    run_test("runtime_loopback", astra_test_runtime_loopback);
 
     printf("----------------------\n");
     printf("%d / %d PASSED\n", passed, total);
