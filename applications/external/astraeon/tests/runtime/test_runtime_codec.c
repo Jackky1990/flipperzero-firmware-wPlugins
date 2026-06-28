@@ -59,7 +59,63 @@ bool astra_test_runtime_codec(void) {
     }
 
     const uint8_t* decoded_payload = (const uint8_t*)decoded.payload;
-    return decoded_payload[0] == 0xAA &&
-           decoded_payload[1] == 0xBB &&
-           decoded_payload[2] == 0xCC;
+    if(decoded_payload[0] != 0xAA ||
+       decoded_payload[1] != 0xBB ||
+       decoded_payload[2] != 0xCC) {
+        return false;
+    }
+
+    uint8_t bad_magic[64];
+    for(size_t i = 0; i < encoded_size; i++) {
+        bad_magic[i] = buffer[i];
+    }
+    bad_magic[0] = 0x00;
+
+    if(astra_runtime_message_decode(&decoded, bad_magic, encoded_size).status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    uint8_t bad_version[64];
+    for(size_t i = 0; i < encoded_size; i++) {
+        bad_version[i] = buffer[i];
+    }
+    bad_version[2] = 0xFF;
+
+    if(astra_runtime_message_decode(&decoded, bad_version, encoded_size).status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astra_runtime_message_decode(&decoded, buffer, ASTRA_RUNTIME_CODEC_HEADER_SIZE - 1).status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astra_runtime_message_decode(&decoded, buffer, encoded_size - 1).status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astra_runtime_message_init(&message).status != AstraStatusOk) {
+        return false;
+    }
+
+    message.type = AstraRuntimeMessageHeartbeat;
+    message.source = 1;
+    message.destination = 2;
+    message.payload_size = 0;
+    message.payload = 0;
+
+    if(astra_runtime_message_encode(&message, buffer, sizeof(buffer), &encoded_size).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(encoded_size != ASTRA_RUNTIME_CODEC_HEADER_SIZE) {
+        return false;
+    }
+
+    if(astra_runtime_message_decode(&decoded, buffer, encoded_size).status != AstraStatusOk) {
+        return false;
+    }
+
+    return decoded.type == AstraRuntimeMessageHeartbeat &&
+           decoded.payload_size == 0 &&
+           decoded.payload == 0;
 }
