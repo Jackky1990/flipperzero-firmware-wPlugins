@@ -7,6 +7,11 @@ AstraResult astra_runtime_transport_init(AstraRuntimeTransport* transport) {
 
     transport->send = 0;
     transport->receive = 0;
+    transport->capabilities.supports_stream = false;
+    transport->capabilities.supports_packets = false;
+    transport->capabilities.reliable = false;
+    transport->capabilities.max_payload_size = 0;
+
     return astra_result_ok();
 }
 
@@ -20,6 +25,11 @@ AstraResult astra_runtime_transport_send(
 
     if(!data || size == 0) {
         return astra_result_error(AstraStatusInvalidArgument, "data is invalid");
+    }
+
+    if(transport->capabilities.max_payload_size > 0 &&
+       size > transport->capabilities.max_payload_size) {
+        return astra_result_error(AstraStatusBusy, "payload too large");
     }
 
     return transport->send(data, size);
@@ -39,4 +49,14 @@ AstraResult astra_runtime_transport_receive(
     }
 
     return transport->receive(buffer, buffer_size, received_size);
+}
+
+const AstraRuntimeTransportCapabilities*
+astra_runtime_transport_capabilities(
+    const AstraRuntimeTransport* transport) {
+    if(!transport) {
+        return 0;
+    }
+
+    return &transport->capabilities;
 }

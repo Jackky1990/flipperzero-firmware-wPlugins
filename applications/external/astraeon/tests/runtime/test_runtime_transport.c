@@ -41,6 +41,18 @@ bool astra_test_runtime_transport(void) {
         return false;
     }
 
+    const AstraRuntimeTransportCapabilities* caps =
+        astra_runtime_transport_capabilities(&transport);
+
+    if(!caps || caps->supports_stream || caps->supports_packets ||
+       caps->reliable || caps->max_payload_size != 0) {
+        return false;
+    }
+
+    if(astra_runtime_transport_capabilities(0) != 0) {
+        return false;
+    }
+
     if(astra_runtime_transport_send(&transport, data, sizeof(data)).status != AstraStatusInvalidArgument) {
         return false;
     }
@@ -51,6 +63,7 @@ bool astra_test_runtime_transport(void) {
 
     transport.send = test_send;
     transport.receive = test_receive;
+    transport.capabilities.max_payload_size = sizeof(data);
 
     if(astra_runtime_transport_send(&transport, 0, sizeof(data)).status != AstraStatusInvalidArgument) {
         return false;

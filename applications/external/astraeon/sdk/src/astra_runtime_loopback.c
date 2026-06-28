@@ -35,5 +35,9 @@ AstraResult astra_runtime_loopback_init(AstraRuntimeTransport* transport) {
     loopback_size = 0;
     transport->send = astra_loopback_send;
     transport->receive = astra_loopback_receive;
+    transport->capabilities.supports_stream = false;
+    transport->capabilities.supports_packets = true;
+    transport->capabilities.reliable = true;
+    transport->capabilities.max_payload_size = ASTRA_LOOPBACK_BUFFER_SIZE;
     return astra_result_ok();
 }

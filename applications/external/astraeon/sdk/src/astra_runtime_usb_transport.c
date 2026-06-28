@@ -24,5 +24,9 @@ AstraResult astra_runtime_usb_transport_init(AstraRuntimeTransport* transport) {
 
     transport->send = astra_usb_transport_send;
     transport->receive = astra_usb_transport_receive;
+    transport->capabilities.supports_stream = true;
+    transport->capabilities.supports_packets = false;
+    transport->capabilities.reliable = true;
+    transport->capabilities.max_payload_size = 64;
     return astra_result_ok();
 }

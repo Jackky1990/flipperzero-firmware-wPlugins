@@ -19,6 +19,14 @@ bool astra_test_runtime_usb_transport(void) {
         return false;
     }
 
+    const AstraRuntimeTransportCapabilities* caps =
+        astra_runtime_transport_capabilities(&transport);
+
+    if(!caps || !caps->supports_stream || caps->supports_packets ||
+       !caps->reliable || caps->max_payload_size != 64) {
+        return false;
+    }
+
     if(astra_runtime_transport_send(&transport, data, sizeof(data)).status != AstraStatusNotFound) {
         return false;
     }
