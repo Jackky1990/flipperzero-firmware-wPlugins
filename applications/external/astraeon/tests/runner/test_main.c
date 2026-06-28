@@ -31,6 +31,7 @@ int main(void) {
     run_test("event_source", astra_test_event_source);
     run_test("runtime_default", astra_test_runtime_default);
     run_test("runtime_manager", astra_test_runtime_manager);
+    run_test("runtime_isolation", astra_test_runtime_isolation);
 
     printf("----------------------\n");
     printf("%d / %d PASSED\n", passed, total);
