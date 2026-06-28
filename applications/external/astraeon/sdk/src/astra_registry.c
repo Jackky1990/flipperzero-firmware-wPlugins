@@ -16,6 +16,34 @@ typedef struct {
 } AstraRegistryStore;
 
 
+#define ASTRA_REGISTRY_POOL_SIZE 8
+
+typedef struct {
+    AstraRuntimeContext* owner;
+    AstraRegistryStore store;
+    bool used;
+} AstraRegistryPoolSlot;
+
+static AstraRegistryPoolSlot registry_pool[ASTRA_REGISTRY_POOL_SIZE];
+
+static AstraRegistryStore* astra_registry_pool_acquire(AstraRuntimeContext* context) {
+    for(size_t index = 0; index < ASTRA_REGISTRY_POOL_SIZE; index++) {
+        if(registry_pool[index].used && registry_pool[index].owner == context) {
+            return &registry_pool[index].store;
+        }
+    }
+
+    for(size_t index = 0; index < ASTRA_REGISTRY_POOL_SIZE; index++) {
+        if(!registry_pool[index].used) {
+            registry_pool[index].used = true;
+            registry_pool[index].owner = context;
+            return &registry_pool[index].store;
+        }
+    }
+
+    return 0;
+}
+
 static AstraRegistryStore* astra_registry_store_from_context(AstraRuntimeContext* context) {
     if(!context) {
         return 0;
@@ -94,11 +122,14 @@ AstraResult astra_registry_init_context(AstraRuntimeContext* context) {
         return astra_result_error(AstraStatusInvalidArgument, "context is null");
     }
 
-    static AstraRegistryStore context_registry;
+    AstraRegistryStore* store = astra_registry_pool_acquire(context);
+    if(!store) {
+        return astra_result_error(AstraStatusBusy, "registry pool is full");
+    }
 
-    astra_registry_store_reset(&context_registry);
+    astra_registry_store_reset(store);
 
-    AstraResult result = astra_runtime_context_set_registry(context, &context_registry);
+    AstraResult result = astra_runtime_context_set_registry(context, store);
     if(result.status != AstraStatusOk) {
         return result;
     }
