@@ -12,6 +12,7 @@ typedef struct {
 } AstraRuntimeSlot;
 
 static AstraRuntimeSlot runtimes[ASTRA_RUNTIME_MANAGER_MAX_RUNTIMES];
+static AstraRuntimeId current_runtime_id = 0;
 
 AstraResult astra_runtime_manager_init(void) {
     for(size_t i = 0; i < ASTRA_RUNTIME_MANAGER_MAX_RUNTIMES; i++) {
@@ -22,6 +23,7 @@ AstraResult astra_runtime_manager_init(void) {
     runtimes[0].used = true;
     astra_runtime_default_init();
     runtimes[0].context = *astra_runtime_default_context();
+    current_runtime_id = 0;
 
     return astra_result_ok();
 }
@@ -88,4 +90,21 @@ size_t astra_runtime_count(void) {
 
 bool astra_runtime_exists(AstraRuntimeId id) {
     return astra_runtime_get(id) != 0;
+}
+
+AstraResult astra_runtime_set_current(AstraRuntimeId id) {
+    if(!astra_runtime_exists(id)) {
+        return astra_result_error(AstraStatusNotFound, "runtime not found");
+    }
+
+    current_runtime_id = id;
+    return astra_result_ok();
+}
+
+AstraRuntimeId astra_runtime_current_id(void) {
+    return current_runtime_id;
+}
+
+AstraRuntimeContext* astra_runtime_current(void) {
+    return astra_runtime_get(current_runtime_id);
 }

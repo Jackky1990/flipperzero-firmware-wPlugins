@@ -24,6 +24,14 @@ bool astra_test_runtime_manager(void) {
         return false;
     }
 
+    if(astra_runtime_current_id() != 0) {
+        return false;
+    }
+
+    if(astra_runtime_current() != astra_runtime_get(0)) {
+        return false;
+    }
+
     if(astra_runtime_count() != 1) {
         return false;
     }
@@ -88,6 +96,26 @@ bool astra_test_runtime_manager(void) {
         return false;
     }
 
+    if(astra_runtime_set_current(id1).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_runtime_current_id() != id1) {
+        return false;
+    }
+
+    if(astra_runtime_current() != ctx1) {
+        return false;
+    }
+
+    if(astra_runtime_set_current(999).status != AstraStatusNotFound) {
+        return false;
+    }
+
+    if(astra_runtime_current_id() != id1) {
+        return false;
+    }
+
     if(astra_runtime_get(id2) != ctx2) {
         return false;
     }
@@ -136,7 +164,15 @@ bool astra_test_runtime_manager(void) {
         return false;
     }
 
+    if(astra_runtime_set_current(id4).status != AstraStatusOk) {
+        return false;
+    }
+
     if(astra_runtime_destroy(id4).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_runtime_current() != 0) {
         return false;
     }
 
