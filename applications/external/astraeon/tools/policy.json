@@ -20,7 +20,8 @@
       "astra_runtime_context",
       "astra_runtime_default",
       "astra_runtime_manager",
-      "astra_runtime_message"
+      "astra_runtime_message",
+      "astra_runtime_transport"
     ],
     "services": [],
     "application": []
