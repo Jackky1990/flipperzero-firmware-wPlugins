@@ -37,6 +37,7 @@ int main(void) {
     run_test("runtime_loopback", astra_test_runtime_loopback);
     run_test("runtime_usb_transport", astra_test_runtime_usb_transport);
     run_test("runtime_session", astra_test_runtime_session);
+    run_test("runtime_handshake", astra_test_runtime_handshake);
 
     printf("----------------------\n");
     printf("%d / %d PASSED\n", passed, total);
