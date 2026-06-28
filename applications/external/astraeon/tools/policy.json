@@ -19,7 +19,8 @@
       "astra_event_source",
       "astra_runtime_context",
       "astra_runtime_default",
-      "astra_runtime_manager"
+      "astra_runtime_manager",
+      "astra_runtime_message"
     ],
     "services": [],
     "application": []
