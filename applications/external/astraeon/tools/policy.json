@@ -23,7 +23,8 @@
       "astra_runtime_message",
       "astra_runtime_transport",
       "astra_runtime_loopback",
-      "astra_runtime_usb_transport"
+      "astra_runtime_usb_transport",
+      "astra_runtime_session"
     ],
     "services": [],
     "application": []
