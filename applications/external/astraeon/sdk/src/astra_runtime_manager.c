@@ -73,3 +73,19 @@ AstraRuntimeContext* astra_runtime_get(AstraRuntimeId id) {
 AstraRuntimeContext* astra_runtime_default(void) {
     return astra_runtime_default_context();
 }
+
+size_t astra_runtime_count(void) {
+    size_t count = 0;
+
+    for(size_t i = 0; i < ASTRA_RUNTIME_MANAGER_MAX_RUNTIMES; i++) {
+        if(runtimes[i].used) {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+bool astra_runtime_exists(AstraRuntimeId id) {
+    return astra_runtime_get(id) != 0;
+}
