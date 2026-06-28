@@ -37,7 +37,10 @@ bool astra_test_event_bus(void) {
 
     if(astra_runtime_context_init(&context).status != AstraStatusOk) return false;
     if(astra_event_bus_init_context(0).status != AstraStatusInvalidArgument) return false;
+    if(astra_registry_init_context(&context).status != AstraStatusOk) return false;
     if(astra_event_bus_init_context(&context).status != AstraStatusOk) return false;
+
+    if(astra_registry_register_context(&context, AstraEventTypeStatus, astra_test_event_bus_handler).status != AstraStatusOk) return false;
 
     if(astra_event_builder_init(&event, AstraEventTypeStatus).status != AstraStatusOk) return false;
     if(astra_event_bus_publish_context(0, &event).status != AstraStatusInvalidArgument) return false;

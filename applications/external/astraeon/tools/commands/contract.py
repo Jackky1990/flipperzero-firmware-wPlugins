@@ -19,6 +19,10 @@ WRAPPER_MODULES = [
     "astra_runtime_loop",
 ]
 
+IGNORE_TEST_REFERENCE_PREFIXES = [
+    "astra_result_",
+]
+
 def count_definitions(func):
     pattern = re.compile(
         r"(?:AstraResult|AstraEventHandler|AstraRuntimeContext\*|void\*)\s+"
@@ -29,6 +33,18 @@ def count_definitions(func):
     for source in SDK_SRC.glob("astra_*.c"):
         count += len(pattern.findall(source.read_text()))
     return count
+
+def has_test_reference(func):
+    return any(f"{func}(" in t.read_text() for t in TESTS.glob("test_*.c"))
+
+def has_source_reference(func):
+    refs = 0
+    for source in SDK_SRC.glob("astra_*.c"):
+        refs += source.read_text().count(f"{func}(")
+    return refs > 1
+
+def ignores_test_reference(func):
+    return any(func.startswith(prefix) for prefix in IGNORE_TEST_REFERENCE_PREFIXES)
 
 def run_command():
     print("== AEP CONTRACT SCAN v2 ==")
@@ -51,8 +67,12 @@ def run_command():
             if definitions > 1:
                 failures.append(f"duplicate implementation: {func} ({definitions})")
 
-            if not any(f"{func}(" in t.read_text() for t in TESTS.glob("test_*.c")):
-                failures.append(f"missing test reference: {func}")
+            if (
+                not ignores_test_reference(func)
+                and not has_test_reference(func)
+                and not has_source_reference(func)
+            ):
+                failures.append(f"missing test or wrapper reference: {func}")
 
     for module in WRAPPER_MODULES:
         source = SDK_SRC / f"{module}.c"

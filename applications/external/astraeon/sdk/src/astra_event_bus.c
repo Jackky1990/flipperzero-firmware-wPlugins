@@ -15,7 +15,7 @@ AstraResult astra_event_bus_init_context(AstraRuntimeContext* context) {
         return astra_result_error(AstraStatusInvalidArgument, "context is null");
     }
 
-    return astra_event_bus_init();
+    return astra_dispatcher_init_context(context);
 }
 
 AstraResult astra_event_bus_publish_context(AstraRuntimeContext* context, AstraEvent* event) {
@@ -23,5 +23,9 @@ AstraResult astra_event_bus_publish_context(AstraRuntimeContext* context, AstraE
         return astra_result_error(AstraStatusInvalidArgument, "context is null");
     }
 
-    return astra_event_bus_publish(event);
+    if(!event) {
+        return astra_result_error(AstraStatusInvalidArgument, "event is null");
+    }
+
+    return astra_dispatcher_dispatch_context(context, event);
 }
