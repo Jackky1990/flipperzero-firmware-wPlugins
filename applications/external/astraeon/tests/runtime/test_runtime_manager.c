@@ -2,8 +2,15 @@
 #include "astra_runtime_manager.h"
 
 bool astra_test_runtime_manager(void) {
-    AstraRuntimeId id = 0;
-    AstraRuntimeContext* context = 0;
+    AstraRuntimeId id1 = 0;
+    AstraRuntimeId id2 = 0;
+    AstraRuntimeId id3 = 0;
+    AstraRuntimeId id4 = 0;
+
+    AstraRuntimeContext* ctx1 = 0;
+    AstraRuntimeContext* ctx2 = 0;
+    AstraRuntimeContext* ctx3 = 0;
+    AstraRuntimeContext* ctx4 = 0;
 
     if(astra_runtime_manager_init().status != AstraStatusOk) {
         return false;
@@ -17,35 +24,83 @@ bool astra_test_runtime_manager(void) {
         return false;
     }
 
-    if(astra_runtime_create(0, &context).status != AstraStatusInvalidArgument) {
+    if(astra_runtime_create(0, &ctx1).status != AstraStatusInvalidArgument) {
         return false;
     }
 
-    if(astra_runtime_create(&id, 0).status != AstraStatusInvalidArgument) {
+    if(astra_runtime_create(&id1, 0).status != AstraStatusInvalidArgument) {
         return false;
     }
 
-    if(astra_runtime_create(&id, &context).status != AstraStatusOk) {
+    if(astra_runtime_create(&id1, &ctx1).status != AstraStatusOk) {
         return false;
     }
 
-    if(id == 0 || !context || !context->initialized) {
+    if(astra_runtime_create(&id2, &ctx2).status != AstraStatusOk) {
         return false;
     }
 
-    if(astra_runtime_get(id) != context) {
+    if(astra_runtime_create(&id3, &ctx3).status != AstraStatusOk) {
         return false;
     }
 
-    if(astra_runtime_destroy(id).status != AstraStatusOk) {
+    if(id1 == 0 || id2 == 0 || id3 == 0) {
         return false;
     }
 
-    if(astra_runtime_get(id) != 0) {
+    if(id1 == id2 || id1 == id3 || id2 == id3) {
         return false;
     }
 
-    if(astra_runtime_destroy(id).status != AstraStatusNotFound) {
+    if(!ctx1 || !ctx2 || !ctx3) {
+        return false;
+    }
+
+    if(!ctx1->initialized || !ctx2->initialized || !ctx3->initialized) {
+        return false;
+    }
+
+    if(astra_runtime_get(id1) != ctx1) {
+        return false;
+    }
+
+    if(astra_runtime_get(id2) != ctx2) {
+        return false;
+    }
+
+    if(astra_runtime_get(id3) != ctx3) {
+        return false;
+    }
+
+    if(astra_runtime_create(&id4, &ctx4).status != AstraStatusBusy) {
+        return false;
+    }
+
+    if(astra_runtime_destroy(id2).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_runtime_get(id2) != 0) {
+        return false;
+    }
+
+    if(astra_runtime_create(&id4, &ctx4).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(id4 != id2) {
+        return false;
+    }
+
+    if(!ctx4 || !ctx4->initialized) {
+        return false;
+    }
+
+    if(astra_runtime_destroy(id4).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_runtime_destroy(id4).status != AstraStatusNotFound) {
         return false;
     }
 
