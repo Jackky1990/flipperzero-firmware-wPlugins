@@ -22,4 +22,5 @@ bool astra_test_runtime_isolation(void);
 bool astra_test_runtime_message(void);
 bool astra_test_runtime_transport(void);
 bool astra_test_runtime_loopback(void);
+bool astra_test_runtime_usb_transport(void);
 bool astra_test_run_all(void);
