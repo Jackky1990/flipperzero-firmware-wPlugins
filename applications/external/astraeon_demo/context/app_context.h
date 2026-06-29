@@ -5,7 +5,7 @@
 #include "platform_context.h"
 
 typedef struct {
-    AstraRuntimeContext runtime;
-    AstraUiContext ui;
-    AstraPlatformContext platform;
-} AstraApplication;
+    AstraeonRuntimeContext runtime;
+    AstraeonUiContext ui;
+    AstraeonPlatformContext platform;
+} AstraeonApplication;

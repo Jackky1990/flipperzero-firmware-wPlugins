@@ -6,4 +6,4 @@ typedef struct {
     bool ready;
     bool transport_ready;
     bool ping_ok;
-} AstraRuntimeContext;
+} AstraeonRuntimeContext;

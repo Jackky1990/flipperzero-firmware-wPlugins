@@ -8,4 +8,4 @@ typedef struct {
     ViewPort* view_port;
     Gui* gui;
     bool running;
-} AstraPlatformContext;
+} AstraeonPlatformContext;
