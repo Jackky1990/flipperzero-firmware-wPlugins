@@ -12,7 +12,8 @@ App(
         Lib(
             name="astraeon_sdk",
             fap_include_paths=["include"],
-            sources=[
+            fap_include_paths=["context"],
+    sources=[
                 "src/astra_result.c",
                 "src/astra_runtime_transport.c",
                 "src/astra_runtime_loopback.c",
