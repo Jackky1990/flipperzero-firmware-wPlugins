@@ -1,50 +1,12 @@
 #include <furi.h>
 #include <gui/gui.h>
 #include <input/input.h>
+#include "app_state.h"
+#include "view.h"
 #include "astra_runtime_transport.h"
 #include "astra_runtime_loopback.h"
 #include "astra_runtime_ping.h"
 
-typedef struct {
-    FuriMessageQueue* queue;
-    ViewPort* view_port;
-    Gui* gui;
-    bool running;
-    bool runtime_ready;
-    bool transport_ready;
-    bool ping_pass;
-    uint8_t menu_index;
-} AstraeonDemo;
-
-static void astraeon_demo_draw(Canvas* canvas, void* context) {
-    UNUSED(context);
-
-    canvas_clear(canvas);
-    canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str_aligned(canvas, 64, 12, AlignCenter, AlignCenter, "ASTRAEON-X");
-
-    canvas_set_font(canvas, FontSecondary);
-    AstraeonDemo* app = context;
-
-    const char* items[] = {
-        "Status",
-        "GPIO",
-        "NFC",
-        "RFID",
-        "SubGHz",
-    };
-
-    canvas_draw_str_aligned(canvas, 64, 10, AlignCenter, AlignCenter, "ASTRAEON-X");
-
-    canvas_set_font(canvas, FontSecondary);
-    canvas_draw_str_aligned(canvas, 64, 23, AlignCenter, AlignCenter, app->ping_pass ? "Runtime: READY" : "Runtime: FAIL");
-
-    for(uint8_t i = 0; i < 5; i++) {
-        char line[32];
-        snprintf(line, sizeof(line), "%c %s", app->menu_index == i ? '>' : ' ', items[i]);
-        canvas_draw_str(canvas, 22, 36 + (i * 9), line);
-    }
-}
 
 static void astraeon_demo_input(InputEvent* event, void* context) {
     AstraeonDemo* app = context;
