@@ -25,4 +25,5 @@ bool astra_test_runtime_loopback(void);
 bool astra_test_runtime_usb_transport(void);
 bool astra_test_runtime_session(void);
 bool astra_test_runtime_handshake(void);
+bool astra_test_runtime_capabilities(void);
 bool astra_test_run_all(void);
