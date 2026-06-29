@@ -13,6 +13,7 @@ typedef struct {
     bool runtime_ready;
     bool transport_ready;
     bool ping_pass;
+    uint8_t menu_index;
 } AstraeonDemo;
 
 static void astraeon_demo_draw(Canvas* canvas, void* context) {
@@ -25,10 +26,24 @@ static void astraeon_demo_draw(Canvas* canvas, void* context) {
     canvas_set_font(canvas, FontSecondary);
     AstraeonDemo* app = context;
 
-    canvas_draw_str_aligned(canvas, 64, 26, AlignCenter, AlignCenter, "Runtime Demo");
-    canvas_draw_str_aligned(canvas, 64, 38, AlignCenter, AlignCenter, app->runtime_ready ? "Runtime: READY" : "Runtime: FAIL");
-    canvas_draw_str_aligned(canvas, 64, 50, AlignCenter, AlignCenter, app->transport_ready ? "Transport: LOOPBACK" : "Transport: FAIL");
-    canvas_draw_str_aligned(canvas, 64, 62, AlignCenter, AlignCenter, app->ping_pass ? "Ping: PASS" : "Ping: FAIL");
+    const char* items[] = {
+        "Status",
+        "GPIO",
+        "NFC",
+        "RFID",
+        "SubGHz",
+    };
+
+    canvas_draw_str_aligned(canvas, 64, 10, AlignCenter, AlignCenter, "ASTRAEON-X");
+
+    canvas_set_font(canvas, FontSecondary);
+    canvas_draw_str_aligned(canvas, 64, 23, AlignCenter, AlignCenter, app->ping_pass ? "Runtime: READY" : "Runtime: FAIL");
+
+    for(uint8_t i = 0; i < 5; i++) {
+        char line[32];
+        snprintf(line, sizeof(line), "%c %s", app->menu_index == i ? '>' : ' ', items[i]);
+        canvas_draw_str(canvas, 22, 36 + (i * 9), line);
+    }
 }
 
 static void astraeon_demo_input(InputEvent* event, void* context) {
@@ -66,6 +81,14 @@ int32_t astraeon_demo_main(void* p) {
         if(furi_message_queue_get(app.queue, &event, 100) == FuriStatusOk) {
             if(event.type == InputTypeShort && event.key == InputKeyBack) {
                 app.running = false;
+            } else if(event.type == InputTypeShort && event.key == InputKeyDown) {
+                if(app.menu_index < 4) {
+                    app.menu_index++;
+                }
+            } else if(event.type == InputTypeShort && event.key == InputKeyUp) {
+                if(app.menu_index > 0) {
+                    app.menu_index--;
+                }
             }
         }
 
