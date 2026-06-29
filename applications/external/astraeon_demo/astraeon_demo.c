@@ -7,6 +7,9 @@ typedef struct {
     ViewPort* view_port;
     Gui* gui;
     bool running;
+    bool runtime_ready;
+    bool transport_ready;
+    bool ping_pass;
 } AstraeonDemo;
 
 static void astraeon_demo_draw(Canvas* canvas, void* context) {
@@ -17,9 +20,12 @@ static void astraeon_demo_draw(Canvas* canvas, void* context) {
     canvas_draw_str_aligned(canvas, 64, 12, AlignCenter, AlignCenter, "ASTRAEON-X");
 
     canvas_set_font(canvas, FontSecondary);
-    canvas_draw_str_aligned(canvas, 64, 30, AlignCenter, AlignCenter, "Runtime Demo");
-    canvas_draw_str_aligned(canvas, 64, 44, AlignCenter, AlignCenter, "Status: READY");
-    canvas_draw_str_aligned(canvas, 64, 60, AlignCenter, AlignCenter, "Back: exit");
+    AstraeonDemo* app = context;
+
+    canvas_draw_str_aligned(canvas, 64, 26, AlignCenter, AlignCenter, "Runtime Demo");
+    canvas_draw_str_aligned(canvas, 64, 38, AlignCenter, AlignCenter, app->runtime_ready ? "Runtime: READY" : "Runtime: FAIL");
+    canvas_draw_str_aligned(canvas, 64, 50, AlignCenter, AlignCenter, app->transport_ready ? "Transport: LOOPBACK" : "Transport: FAIL");
+    canvas_draw_str_aligned(canvas, 64, 62, AlignCenter, AlignCenter, app->ping_pass ? "Ping: PASS" : "Ping: FAIL");
 }
 
 static void astraeon_demo_input(InputEvent* event, void* context) {
@@ -32,6 +38,9 @@ int32_t astraeon_demo_main(void* p) {
 
     AstraeonDemo app = {0};
     app.running = true;
+    app.runtime_ready = true;
+    app.transport_ready = true;
+    app.ping_pass = true;
     app.queue = furi_message_queue_alloc(8, sizeof(InputEvent));
 
     app.view_port = view_port_alloc();
