@@ -26,7 +26,8 @@
       "astra_runtime_usb_transport",
       "astra_runtime_session",
       "astra_runtime_handshake",
-      "astra_runtime_capabilities"
+      "astra_runtime_capabilities",
+      "astra_runtime_heartbeat"
     ],
     "services": [],
     "application": []

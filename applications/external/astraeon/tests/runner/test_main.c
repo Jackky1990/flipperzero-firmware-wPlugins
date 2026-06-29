@@ -39,6 +39,7 @@ int main(void) {
     run_test("runtime_session", astra_test_runtime_session);
     run_test("runtime_handshake", astra_test_runtime_handshake);
     run_test("runtime_capabilities", astra_test_runtime_capabilities);
+    run_test("runtime_heartbeat", astra_test_runtime_heartbeat);
 
     printf("----------------------\n");
     printf("%d / %d PASSED\n", passed, total);
