@@ -27,7 +27,8 @@
       "astra_runtime_session",
       "astra_runtime_handshake",
       "astra_runtime_capabilities",
-      "astra_runtime_heartbeat"
+      "astra_runtime_heartbeat",
+      "astra_runtime_config"
     ],
     "services": [],
     "application": []
