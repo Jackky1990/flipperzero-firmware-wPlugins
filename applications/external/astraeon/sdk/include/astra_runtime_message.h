@@ -15,6 +15,8 @@ typedef enum {
     AstraRuntimeMessageEvent,
     AstraRuntimeMessageCommand,
     AstraRuntimeMessageHeartbeat,
+    AstraRuntimeMessagePing,
+    AstraRuntimeMessagePong,
     AstraRuntimeMessageCapability,
     AstraRuntimeMessageResponse,
 } AstraRuntimeMessageType;

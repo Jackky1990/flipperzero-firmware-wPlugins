@@ -1,0 +1,11 @@
+{
+  "verify": true,
+  "dry_run": false,
+  "patches": [
+    {
+      "file": "applications/external/astraeon/sdk/include/astra_runtime_message.h",
+      "after": "    AstraRuntimeMessageHeartbeat,",
+      "insert": "    AstraRuntimeMessagePing,\\n    AstraRuntimeMessagePong,"
+    }
+  ]
+}
