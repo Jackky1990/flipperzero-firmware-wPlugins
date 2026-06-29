@@ -1,6 +1,8 @@
 #include <furi.h>
 #include <gui/gui.h>
 #include <input/input.h>
+#include "astra_runtime_transport.h"
+#include "astra_runtime_loopback.h"
 
 typedef struct {
     FuriMessageQueue* queue;
@@ -39,7 +41,12 @@ int32_t astraeon_demo_main(void* p) {
     AstraeonDemo app = {0};
     app.running = true;
     app.runtime_ready = true;
-    app.transport_ready = true;
+
+    AstraRuntimeTransport transport;
+    app.transport_ready =
+        astra_runtime_transport_init(&transport).status == AstraStatusOk &&
+        astra_runtime_loopback_init(&transport).status == AstraStatusOk;
+
     app.ping_pass = true;
     app.queue = furi_message_queue_alloc(8, sizeof(InputEvent));
 

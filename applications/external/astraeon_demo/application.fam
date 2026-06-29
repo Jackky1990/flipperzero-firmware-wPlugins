@@ -8,4 +8,15 @@ App(
     fap_author="Jack",
     fap_version="0.1",
     fap_description="ASTRAEON-X runtime demo application.",
+    fap_private_libs=[
+        Lib(
+            name="astraeon_sdk",
+            fap_include_paths=["include"],
+            sources=[
+                "src/astra_result.c",
+                "src/astra_runtime_transport.c",
+                "src/astra_runtime_loopback.c",
+            ],
+        ),
+    ],
 )
