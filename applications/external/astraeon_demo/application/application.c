@@ -25,3 +25,16 @@ void astraeon_application_request_redraw(void) {
         view_port_update(astraeon_current_app->view_port);
     }
 }
+
+
+AstraeonRuntimeContext* astraeon_application_runtime(void) {
+    return astraeon_current_app ? &astraeon_current_app->app.runtime : 0;
+}
+
+AstraeonUiContext* astraeon_application_ui(void) {
+    return astraeon_current_app ? &astraeon_current_app->app.ui : 0;
+}
+
+AstraeonPlatformContext* astraeon_application_platform(void) {
+    return astraeon_current_app ? &astraeon_current_app->app.platform : 0;
+}
