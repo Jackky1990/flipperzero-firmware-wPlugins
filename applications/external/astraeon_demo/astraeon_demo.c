@@ -3,15 +3,11 @@
 #include <input/input.h>
 #include "app_state.h"
 #include "view.h"
+#include "input.h"
 #include "astra_runtime_transport.h"
 #include "astra_runtime_loopback.h"
 #include "astra_runtime_ping.h"
 
-
-static void astraeon_demo_input(InputEvent* event, void* context) {
-    AstraeonDemo* app = context;
-    furi_message_queue_put(app->queue, event, 0);
-}
 
 int32_t astraeon_demo_main(void* p) {
     UNUSED(p);
@@ -41,17 +37,7 @@ int32_t astraeon_demo_main(void* p) {
     InputEvent event;
     while(app.running) {
         if(furi_message_queue_get(app.queue, &event, 100) == FuriStatusOk) {
-            if(event.type == InputTypeShort && event.key == InputKeyBack) {
-                app.running = false;
-            } else if(event.type == InputTypeShort && event.key == InputKeyDown) {
-                if(app.menu_index < 4) {
-                    app.menu_index++;
-                }
-            } else if(event.type == InputTypeShort && event.key == InputKeyUp) {
-                if(app.menu_index > 0) {
-                    app.menu_index--;
-                }
-            }
+            astraeon_demo_handle_input(&event, &app);
         }
 
         view_port_update(app.view_port);
