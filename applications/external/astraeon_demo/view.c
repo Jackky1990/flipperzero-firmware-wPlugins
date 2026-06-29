@@ -23,7 +23,7 @@ void astraeon_demo_draw(Canvas* canvas, void* context) {
 
     for(uint8_t i = 0; i < 5; i++) {
         char line[32];
-        snprintf(line, sizeof(line), "%c %s", app->menu_index == i ? '>' : ' ', items[i]);
+        snprintf(line, sizeof(line), "%c %s", app->app.ui.menu_index == i ? '>' : ' ', items[i]);
         canvas_draw_str(canvas, 22, 36 + (i * 9), line);
     }
 }

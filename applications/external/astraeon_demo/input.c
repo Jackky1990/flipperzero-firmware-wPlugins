@@ -12,12 +12,12 @@ void astraeon_demo_handle_input(InputEvent* event, void* context) {
     if(event->type == InputTypeShort && event->key == InputKeyBack) {
         app->running = false;
     } else if(event->type == InputTypeShort && event->key == InputKeyDown) {
-        if(app->menu_index < 4) {
-            app->menu_index++;
+        if(app->app.ui.menu_index < 4) {
+            app->app.ui.menu_index++;
         }
     } else if(event->type == InputTypeShort && event->key == InputKeyUp) {
-        if(app->menu_index > 0) {
-            app->menu_index--;
+        if(app->app.ui.menu_index > 0) {
+            app->app.ui.menu_index--;
         }
     }
 }
