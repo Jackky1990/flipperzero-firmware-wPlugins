@@ -3,7 +3,7 @@
 
 void astraeon_demo_input(InputEvent* event, void* context) {
     AstraeonDemo* app = context;
-    furi_message_queue_put(app->queue, event, 0);
+    furi_message_queue_put(app->app.platform.queue, event, 0);
 }
 
 void astraeon_demo_handle_input(InputEvent* event, void* context) {

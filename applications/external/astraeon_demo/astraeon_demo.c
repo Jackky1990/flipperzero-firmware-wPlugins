@@ -13,7 +13,7 @@ int32_t astraeon_demo_main(void* p) {
     AstraeonDemo app = {0};
     app.running = true;
     astraeon_demo_runtime_bootstrap(&app);
-    app.queue = furi_message_queue_alloc(8, sizeof(InputEvent));
+    app.app.platform.queue = furi_message_queue_alloc(8, sizeof(InputEvent));
 
     app.view_port = view_port_alloc();
     view_port_draw_callback_set(app.view_port, astraeon_demo_draw, &app);
@@ -24,7 +24,7 @@ int32_t astraeon_demo_main(void* p) {
 
     InputEvent event;
     while(app.running) {
-        if(furi_message_queue_get(app.queue, &event, 100) == FuriStatusOk) {
+        if(furi_message_queue_get(app.app.platform.queue, &event, 100) == FuriStatusOk) {
             astraeon_demo_handle_input(&event, &app);
         }
 
@@ -33,7 +33,7 @@ int32_t astraeon_demo_main(void* p) {
 
     gui_remove_view_port(app.gui, app.view_port);
     view_port_free(app.view_port);
-    furi_message_queue_free(app.queue);
+    furi_message_queue_free(app.app.platform.queue);
     furi_record_close(RECORD_GUI);
 
     return 0;
