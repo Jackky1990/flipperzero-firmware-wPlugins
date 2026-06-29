@@ -26,6 +26,7 @@ def changed_files():
 def main():
     parser = argparse.ArgumentParser(description="ASTRAEON SAFE PATCH scope audit")
     parser.add_argument("--allow", action="append", default=[], help="Allowed changed file or directory prefix")
+    parser.add_argument("--expect", action="append", default=[], help="Expected changed file exactly")
     parser.add_argument("--clean", action="store_true", help="Require working tree clean")
     args = parser.parse_args()
 
@@ -40,22 +41,39 @@ def main():
         print("[SAFE PATCH AUDIT] PASS: working tree clean")
         return 0
 
-    if not args.allow:
-        print("[SAFE PATCH AUDIT] FAIL: no --allow scope provided")
+    allowed_scopes = list(args.allow)
+    expected_files = list(args.expect)
+
+    if expected_files:
+        allowed_scopes.extend(expected_files)
+
+    if not allowed_scopes:
+        print("[SAFE PATCH AUDIT] FAIL: no --allow or --expect scope provided")
         return 1
 
     unexpected = []
     for f in files:
-        if not any(f == allowed or f.startswith(allowed.rstrip("/") + "/") for allowed in args.allow):
+        if not any(f == allowed or f.startswith(allowed.rstrip("/") + "/") for allowed in allowed_scopes):
             unexpected.append(f)
+
+    missing = []
+    for expected in expected_files:
+        if expected not in files:
+            missing.append(expected)
 
     if unexpected:
         print("[SAFE PATCH AUDIT] FAIL: unexpected changed files")
         print("Allowed scopes:")
-        for allowed in args.allow:
+        for allowed in allowed_scopes:
             print(f"  {allowed}")
         print("Unexpected:")
         for f in unexpected:
+            print(f"  {f}")
+        return 1
+
+    if missing:
+        print("[SAFE PATCH AUDIT] FAIL: expected files not changed")
+        for f in missing:
             print(f"  {f}")
         return 1
 
