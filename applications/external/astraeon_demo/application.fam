@@ -8,7 +8,6 @@ App(
     fap_author="Jack",
     fap_version="0.1",
     fap_description="ASTRAEON-X runtime demo application.",
-    fap_include_paths=["context"],
     sources=["astraeon_demo.c", "view.c", "input.c", "runtime_bootstrap.c"],
     fap_private_libs=[
         Lib(
