@@ -1,5 +1,6 @@
 #include "input.h"
 #include "app_state.h"
+#include "application/application.h"
 
 void astraeon_demo_input(InputEvent* event, void* context) {
     AstraeonDemo* app = context;
@@ -10,7 +11,7 @@ void astraeon_demo_handle_input(InputEvent* event, void* context) {
     AstraeonDemo* app = context;
 
     if(event->type == InputTypeShort && event->key == InputKeyBack) {
-        app->running = false;
+        astraeon_application_stop();
     } else if(event->type == InputTypeShort && event->key == InputKeyDown) {
         if(app->app.ui.menu_index < 4) {
             app->app.ui.menu_index++;
