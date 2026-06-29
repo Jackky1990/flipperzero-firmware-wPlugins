@@ -25,7 +25,7 @@ int32_t astraeon_demo_main(void* p) {
     gui_add_view_port(app.gui, app.view_port, GuiLayerFullscreen);
 
     InputEvent event;
-    while(app.running) {
+    while(astraeon_application_is_running()) {
         if(furi_message_queue_get(app.app.platform.queue, &event, 100) == FuriStatusOk) {
             astraeon_demo_handle_input(&event, &app);
         }
