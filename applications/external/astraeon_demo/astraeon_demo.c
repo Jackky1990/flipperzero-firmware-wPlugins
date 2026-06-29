@@ -5,12 +5,14 @@
 #include "view.h"
 #include "input.h"
 #include "runtime_bootstrap.h"
+#include "application/application.h"
 
 
 int32_t astraeon_demo_main(void* p) {
     UNUSED(p);
 
     AstraeonDemo app = {0};
+    astraeon_application_bind(&app);
     app.running = true;
     astraeon_demo_runtime_bootstrap(&app);
     app.app.platform.queue = furi_message_queue_alloc(8, sizeof(InputEvent));
