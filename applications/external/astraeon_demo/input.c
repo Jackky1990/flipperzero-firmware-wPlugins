@@ -15,10 +15,12 @@ void astraeon_demo_handle_input(InputEvent* event, void* context) {
     } else if(event->type == InputTypeShort && event->key == InputKeyDown) {
         if(app->app.ui.menu_index < 4) {
             app->app.ui.menu_index++;
+            astraeon_application_request_redraw();
         }
     } else if(event->type == InputTypeShort && event->key == InputKeyUp) {
         if(app->app.ui.menu_index > 0) {
             app->app.ui.menu_index--;
+            astraeon_application_request_redraw();
         }
     }
 }
