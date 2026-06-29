@@ -4,9 +4,7 @@
 #include "app_state.h"
 #include "view.h"
 #include "input.h"
-#include "astra_runtime_transport.h"
-#include "astra_runtime_loopback.h"
-#include "astra_runtime_ping.h"
+#include "runtime_bootstrap.h"
 
 
 int32_t astraeon_demo_main(void* p) {
@@ -14,17 +12,7 @@ int32_t astraeon_demo_main(void* p) {
 
     AstraeonDemo app = {0};
     app.running = true;
-    app.runtime_ready = true;
-
-    AstraRuntimeTransport transport;
-    app.transport_ready =
-        astra_runtime_transport_init(&transport).status == AstraStatusOk &&
-        astra_runtime_loopback_init(&transport).status == AstraStatusOk;
-
-    app.ping_pass =
-        app.transport_ready &&
-        astra_runtime_ping_send(&transport).status == AstraStatusOk &&
-        astra_runtime_ping_receive(&transport).status == AstraStatusOk;
+    astraeon_demo_runtime_bootstrap(&app);
     app.queue = furi_message_queue_alloc(8, sizeof(InputEvent));
 
     app.view_port = view_port_alloc();
