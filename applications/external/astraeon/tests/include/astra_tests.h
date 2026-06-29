@@ -27,4 +27,5 @@ bool astra_test_runtime_session(void);
 bool astra_test_runtime_handshake(void);
 bool astra_test_runtime_capabilities(void);
 bool astra_test_runtime_heartbeat(void);
+bool astra_test_runtime_ping(void);
 bool astra_test_run_all(void);
