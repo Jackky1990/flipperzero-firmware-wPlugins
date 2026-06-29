@@ -32,3 +32,39 @@ AstraResult astra_runtime_handshake_validate(const AstraRuntimeHandshake* handsh
 uint16_t astra_runtime_protocol_version(void) {
     return ASTRA_RUNTIME_PROTOCOL_VERSION;
 }
+
+
+AstraResult astra_runtime_handshake_negotiate(
+    const AstraRuntimeCapabilities* local,
+    const AstraRuntimeCapabilities* remote,
+    AstraRuntimeCapabilities* agreed) {
+    if(!local || !remote || !agreed) {
+        return astra_result_error(AstraStatusInvalidArgument, "negotiation input is null");
+    }
+
+    AstraResult local_result = astra_runtime_capabilities_validate(local);
+    if(local_result.status != AstraStatusOk) {
+        return local_result;
+    }
+
+    AstraResult remote_result = astra_runtime_capabilities_validate(remote);
+    if(remote_result.status != AstraStatusOk) {
+        return remote_result;
+    }
+
+    AstraResult init_result = astra_runtime_capabilities_init(agreed);
+    if(init_result.status != AstraStatusOk) {
+        return init_result;
+    }
+
+    agreed->supports_stream = local->supports_stream && remote->supports_stream;
+    agreed->supports_packets = local->supports_packets && remote->supports_packets;
+    agreed->reliable = local->reliable && remote->reliable;
+    agreed->max_payload_size =
+        local->max_payload_size < remote->max_payload_size
+            ? local->max_payload_size
+            : remote->max_payload_size;
+    agreed->feature_flags = local->feature_flags & remote->feature_flags;
+
+    return astra_runtime_capabilities_validate(agreed);
+}

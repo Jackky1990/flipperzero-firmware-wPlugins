@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include "astra_result.h"
+#include "astra_runtime_capabilities.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +23,11 @@ AstraResult astra_runtime_handshake_init(AstraRuntimeHandshake* handshake);
 AstraResult astra_runtime_handshake_validate(const AstraRuntimeHandshake* handshake);
 
 uint16_t astra_runtime_protocol_version(void);
+
+AstraResult astra_runtime_handshake_negotiate(
+    const AstraRuntimeCapabilities* local,
+    const AstraRuntimeCapabilities* remote,
+    AstraRuntimeCapabilities* agreed);
 
 #ifdef __cplusplus
 }
