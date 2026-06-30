@@ -66,10 +66,12 @@ Implemented runtime:
 - astra_event_id
 - astra_event_types
 
+Implemented services:
+- astra_policy
+
 Planned services:
 - astra_storage
 - astra_logger
-- astra_policy
 - astra_audit
 - astra_validation
 

@@ -41,6 +41,7 @@ int main(void) {
     run_test("runtime_capabilities", astra_test_runtime_capabilities);
     run_test("runtime_heartbeat", astra_test_runtime_heartbeat);
     run_test("runtime_ping", astra_test_runtime_ping);
+    run_test("policy", astra_test_policy);
 
     printf("----------------------\n");
     printf("%d / %d PASSED\n", passed, total);

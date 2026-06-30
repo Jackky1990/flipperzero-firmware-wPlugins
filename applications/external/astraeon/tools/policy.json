@@ -38,7 +38,9 @@
       "astra_runtime_config",
       "astra_runtime_ping"
     ],
-    "services": [],
+    "services": [
+      "astra_policy"
+    ],
     "application": []
   },
   "forbidden": [
