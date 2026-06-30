@@ -1,3 +1,8 @@
+ASTRAEON_DEMO_USB_CDC = 0
+ASTRAEON_DEMO_CDEFINES = [
+    f"ASTRA_RUNTIME_ENABLE_USB_CDC={ASTRAEON_DEMO_USB_CDC}",
+]
+
 App(
     appid="astraeon_demo",
     name="ASTRAEON Demo",
@@ -22,6 +27,7 @@ App(
         Lib(
             name="astraeon_sdk",
             fap_include_paths=["include"],
+            cdefines=ASTRAEON_DEMO_CDEFINES,
             sources=[
                 "src/astra_status.c",
                 "src/astra_result.c",
@@ -47,4 +53,5 @@ App(
             ],
         ),
     ],
+    cdefines=ASTRAEON_DEMO_CDEFINES,
 )

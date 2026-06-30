@@ -117,6 +117,13 @@ Initial safe transport is loopback. USB CDC transport is available behind
 `ASTRA_RUNTIME_ENABLE_USB_CDC`. JSONL over UART/USB remains the Node01 adapter
 target and should be introduced after the runtime message contract is stable.
 
+`astraeon_demo` owns its firmware build switch in
+`applications/external/astraeon_demo/application.fam`:
+
+- `ASTRAEON_DEMO_USB_CDC = 0` keeps USB transport disabled for safe builds.
+- `ASTRAEON_DEMO_USB_CDC = 1` forwards `ASTRA_RUNTIME_ENABLE_USB_CDC=1` into
+  the demo and vendored SDK build path for Node01 USB bridge testing.
+
 ## Safety
 
 No replay of unknown access signals.
