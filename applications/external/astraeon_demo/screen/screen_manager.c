@@ -54,7 +54,7 @@ static bool astraeon_screen_status_input(InputEvent* event, void* context) {
     }
 
     AstraeonDemo* app = context;
-    astraeon_demo_runtime_controller_start(&app->app.runtime);
+    astraeon_demo_runtime_controller_start(&app->app.runtime, app->app.platform.storage);
     return true;
 }
 

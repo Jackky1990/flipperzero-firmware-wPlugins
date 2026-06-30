@@ -9,34 +9,9 @@
 #include "astra_runtime_ping.h"
 #include "astra_runtime_transport.h"
 #include "astra_storage.h"
+#include "storage_adapter.h"
 
 #include <string.h>
-
-typedef struct {
-    uint32_t calls;
-    size_t bytes;
-} AstraeonDemoLogSink;
-
-static AstraResult astraeon_demo_runtime_log_append(
-    const char* path,
-    const void* data,
-    size_t size,
-    void* context) {
-    AstraeonDemoLogSink* sink = context;
-
-    if(!sink || !data || size == 0) {
-        return astra_result_error(AstraStatusInvalidArgument, "demo log sink invalid");
-    }
-
-    if(strcmp(path, ASTRA_STORAGE_LOG_PATH) != 0) {
-        return astra_result_error(AstraStatusPermissionDenied, "demo log path invalid");
-    }
-
-    sink->calls++;
-    sink->bytes += size;
-
-    return astra_result_ok();
-}
 
 static void astraeon_demo_runtime_capture_transport(
     AstraeonRuntimeContext* runtime,
@@ -110,23 +85,28 @@ static bool astraeon_demo_runtime_check_policy(void) {
 
 static bool astraeon_demo_runtime_check_storage(
     AstraStorage* storage,
-    AstraeonDemoLogSink* sink) {
+    AstraeonStorageAdapter* adapter,
+    Storage* furi_storage) {
     return astra_storage_init(storage).status == AstraStatusOk &&
-           astra_storage_set_append_callback(storage, astraeon_demo_runtime_log_append, sink)
-                   .status == AstraStatusOk &&
+           astraeon_storage_adapter_init(adapter, furi_storage).status == AstraStatusOk &&
+           astraeon_storage_adapter_bind(storage, adapter).status == AstraStatusOk &&
            astra_storage_validate_path(ASTRA_STORAGE_LOG_PATH).status == AstraStatusOk;
 }
 
-static bool astraeon_demo_runtime_check_logger(AstraStorage* storage, AstraeonDemoLogSink* sink) {
+static bool astraeon_demo_runtime_check_logger(
+    AstraStorage* storage,
+    AstraeonStorageAdapter* adapter) {
     AstraLogger logger;
 
     return astra_logger_init(&logger, storage).status == AstraStatusOk &&
            astra_logger_log(&logger, AstraLogLevelInfo, "diagnostics").status == AstraStatusOk &&
-           sink->calls == 1 &&
-           sink->bytes > 0;
+           adapter->append_calls == 1 &&
+           adapter->append_bytes > 0;
 }
 
-void astraeon_demo_runtime_controller_start(AstraeonRuntimeContext* runtime) {
+void astraeon_demo_runtime_controller_start(
+    AstraeonRuntimeContext* runtime,
+    Storage* furi_storage) {
     if(!runtime) {
         return;
     }
@@ -152,12 +132,13 @@ void astraeon_demo_runtime_controller_start(AstraeonRuntimeContext* runtime) {
     runtime->heartbeat_ok = astraeon_demo_runtime_check_heartbeat();
     runtime->policy_ok = astraeon_demo_runtime_check_policy();
 
-    AstraStorage storage;
-    AstraeonDemoLogSink log_sink = {0};
+    AstraStorage astra_storage;
+    AstraeonStorageAdapter storage_adapter;
 
-    runtime->storage_ok = astraeon_demo_runtime_check_storage(&storage, &log_sink);
+    runtime->storage_ok =
+        astraeon_demo_runtime_check_storage(&astra_storage, &storage_adapter, furi_storage);
     runtime->logger_ok =
-        runtime->storage_ok && astraeon_demo_runtime_check_logger(&storage, &log_sink);
+        runtime->storage_ok && astraeon_demo_runtime_check_logger(&astra_storage, &storage_adapter);
 
     runtime->ping_ok =
         runtime->transport_ready &&

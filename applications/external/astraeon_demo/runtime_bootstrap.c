@@ -7,5 +7,5 @@ void astraeon_demo_runtime_bootstrap(AstraeonDemo* app) {
         return;
     }
 
-    astraeon_demo_runtime_controller_start(&app->app.runtime);
+    astraeon_demo_runtime_controller_start(&app->app.runtime, app->app.platform.storage);
 }

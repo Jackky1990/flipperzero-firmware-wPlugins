@@ -14,6 +14,7 @@ App(
         "input.c",
         "runtime_bootstrap.c",
         "runtime_controller.c",
+        "storage_adapter.c",
         "application/application.c",
         "screen/screen_manager.c",
     ],
