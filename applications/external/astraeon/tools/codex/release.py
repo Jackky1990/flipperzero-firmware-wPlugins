@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-from pathlib import Path
 import argparse
 import subprocess
 import sys
+
+from release.artifact import RELEASE_ARTIFACTS, missing_artifacts
 
 def run(cmd):
     print("[ASTRAEON RELEASE] " + " ".join(cmd))
@@ -18,9 +19,6 @@ def main():
     parser.add_argument("--dev", action="store_true", help="Allow testing while release.py is modified")
     args = parser.parse_args()
 
-    fap = Path("build/f7-firmware-C/.extapps/astraeon_demo.fap")
-    sdk = Path("dist/f7-C/flipper-z-f7-sdk-RM420FAP.zip")
-
     ci_cmd = [
         "python3",
         "applications/external/astraeon/tools/codex/astraeon_ci.py",
@@ -31,24 +29,24 @@ def main():
         ci_cmd.extend([
             "--expect",
             "applications/external/astraeon/tools/codex/release.py",
+            "--allow",
+            "applications/external/astraeon/tools/codex/release",
         ])
     else:
         ci_cmd.append("--clean")
 
     run(ci_cmd)
 
-    if not fap.exists():
-        print(f"[ASTRAEON RELEASE] missing FAP: {fap}")
-        sys.exit(1)
-
-    if not sdk.exists():
-        print(f"[ASTRAEON RELEASE] missing SDK bundle: {sdk}")
+    missing = missing_artifacts()
+    if missing:
+        for artifact in missing:
+            print(f"[ASTRAEON RELEASE] missing {artifact.name}: {artifact.path}")
         sys.exit(1)
 
     print("[ASTRAEON RELEASE] artifacts ready")
     print(f"  tag: {args.tag}")
-    print(f"  fap: {fap}")
-    print(f"  sdk: {sdk}")
+    for artifact in RELEASE_ARTIFACTS:
+        print(f"  {artifact.name}: {artifact.path}")
 
     if args.dry_run:
         print("[ASTRAEON RELEASE] dry run complete")
