@@ -1,5 +1,6 @@
 #include "runtime_controller.h"
 
+#include "astra_logger.h"
 #include "astra_policy.h"
 #include "astra_runtime_capabilities.h"
 #include "astra_runtime_handshake.h"
@@ -7,8 +8,35 @@
 #include "astra_runtime_loopback.h"
 #include "astra_runtime_ping.h"
 #include "astra_runtime_transport.h"
+#include "astra_storage.h"
 
 #include <string.h>
+
+typedef struct {
+    uint32_t calls;
+    size_t bytes;
+} AstraeonDemoLogSink;
+
+static AstraResult astraeon_demo_runtime_log_append(
+    const char* path,
+    const void* data,
+    size_t size,
+    void* context) {
+    AstraeonDemoLogSink* sink = context;
+
+    if(!sink || !data || size == 0) {
+        return astra_result_error(AstraStatusInvalidArgument, "demo log sink invalid");
+    }
+
+    if(strcmp(path, ASTRA_STORAGE_LOG_PATH) != 0) {
+        return astra_result_error(AstraStatusPermissionDenied, "demo log path invalid");
+    }
+
+    sink->calls++;
+    sink->bytes += size;
+
+    return astra_result_ok();
+}
 
 static void astraeon_demo_runtime_capture_transport(
     AstraeonRuntimeContext* runtime,
@@ -80,6 +108,24 @@ static bool astraeon_demo_runtime_check_policy(void) {
                AstraStatusOk;
 }
 
+static bool astraeon_demo_runtime_check_storage(
+    AstraStorage* storage,
+    AstraeonDemoLogSink* sink) {
+    return astra_storage_init(storage).status == AstraStatusOk &&
+           astra_storage_set_append_callback(storage, astraeon_demo_runtime_log_append, sink)
+                   .status == AstraStatusOk &&
+           astra_storage_validate_path(ASTRA_STORAGE_LOG_PATH).status == AstraStatusOk;
+}
+
+static bool astraeon_demo_runtime_check_logger(AstraStorage* storage, AstraeonDemoLogSink* sink) {
+    AstraLogger logger;
+
+    return astra_logger_init(&logger, storage).status == AstraStatusOk &&
+           astra_logger_log(&logger, AstraLogLevelInfo, "diagnostics").status == AstraStatusOk &&
+           sink->calls == 1 &&
+           sink->bytes > 0;
+}
+
 void astraeon_demo_runtime_controller_start(AstraeonRuntimeContext* runtime) {
     if(!runtime) {
         return;
@@ -105,6 +151,13 @@ void astraeon_demo_runtime_controller_start(AstraeonRuntimeContext* runtime) {
         runtime->capabilities_ok && astraeon_demo_runtime_check_handshake(runtime);
     runtime->heartbeat_ok = astraeon_demo_runtime_check_heartbeat();
     runtime->policy_ok = astraeon_demo_runtime_check_policy();
+
+    AstraStorage storage;
+    AstraeonDemoLogSink log_sink = {0};
+
+    runtime->storage_ok = astraeon_demo_runtime_check_storage(&storage, &log_sink);
+    runtime->logger_ok =
+        runtime->storage_ok && astraeon_demo_runtime_check_logger(&storage, &log_sink);
 
     runtime->ping_ok =
         runtime->transport_ready &&

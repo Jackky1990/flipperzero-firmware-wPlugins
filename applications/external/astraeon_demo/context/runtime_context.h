@@ -11,6 +11,8 @@ typedef struct {
     bool handshake_ok;
     bool heartbeat_ok;
     bool policy_ok;
+    bool storage_ok;
+    bool logger_ok;
     bool supports_stream;
     bool supports_packets;
     bool reliable;

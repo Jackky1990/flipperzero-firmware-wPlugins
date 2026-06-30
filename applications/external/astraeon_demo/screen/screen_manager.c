@@ -30,17 +30,19 @@ static void astraeon_screen_status_draw(Canvas* canvas, void* context) {
     snprintf(
         line,
         sizeof(line),
-        "Cap:%s HS:%s Pol:%s",
+        "Cap:%s HS:%s Ping:%s",
         runtime->capabilities_ok ? "OK" : "--",
         runtime->handshake_ok ? "OK" : "--",
-        runtime->policy_ok ? "OK" : "--");
+        runtime->ping_ok ? "OK" : "--");
     canvas_draw_str(canvas, 2, 46, line);
 
     snprintf(
         line,
         sizeof(line),
-        "Ping:%s HB:%s R:%lu",
-        runtime->ping_ok ? "OK" : "--",
+        "Svc:S%s L%s P%s HB:%s R:%lu",
+        runtime->storage_ok ? "+" : "-",
+        runtime->logger_ok ? "+" : "-",
+        runtime->policy_ok ? "+" : "-",
         runtime->heartbeat_ok ? "OK" : "--",
         (unsigned long)runtime->diagnostic_runs);
     canvas_draw_str(canvas, 2, 55, line);

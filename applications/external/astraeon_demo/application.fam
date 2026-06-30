@@ -32,6 +32,8 @@ App(
                 "src/astra_runtime_handshake.c",
                 "src/astra_runtime_heartbeat.c",
                 "src/astra_policy.c",
+                "src/astra_storage.c",
+                "src/astra_logger.c",
             ],
         ),
     ],
