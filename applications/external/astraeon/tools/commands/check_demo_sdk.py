@@ -16,11 +16,45 @@ REQUIRED_DEMO_APPLICATION_TOKENS = (
     "src/astra_node01_usb_bridge.c",
 )
 
+REQUIRED_DEMO_SDK_FILES = (
+    "include/astra_event.h",
+    "include/astra_event_builder.h",
+    "include/astra_event_persistence.h",
+    "include/astra_logger.h",
+    "include/astra_node01.h",
+    "include/astra_node01_usb_bridge.h",
+    "include/astra_policy.h",
+    "include/astra_runtime_config.h",
+    "include/astra_runtime_usb_transport.h",
+    "include/astra_storage.h",
+    "src/astra_event.c",
+    "src/astra_event_builder.c",
+    "src/astra_event_persistence.c",
+    "src/astra_logger.c",
+    "src/astra_node01.c",
+    "src/astra_node01_usb_bridge.c",
+    "src/astra_policy.c",
+    "src/astra_runtime_transport.c",
+    "src/astra_runtime_usb_transport.c",
+    "src/astra_storage.c",
+)
+
 
 def run_command():
     print("== AEP DEMO SDK DRIFT CHECK ==")
 
     failures = []
+
+    for relative_name in REQUIRED_DEMO_SDK_FILES:
+        relative = Path(relative_name)
+        demo_file = DEMO_SDK / relative
+        canonical_file = CANONICAL_SDK / relative
+
+        if not demo_file.exists():
+            failures.append(f"missing demo SDK file: {relative}")
+
+        if not canonical_file.exists():
+            failures.append(f"missing canonical SDK file: {relative}")
 
     for demo_file in sorted(DEMO_SDK.rglob("*")):
         if not demo_file.is_file():
