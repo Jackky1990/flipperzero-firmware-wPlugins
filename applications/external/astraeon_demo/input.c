@@ -1,6 +1,7 @@
 #include "input.h"
 #include "app_state.h"
 #include "application/application.h"
+#include "screen/screen_manager.h"
 
 void astraeon_demo_input(InputEvent* event, void* context) {
     AstraeonDemo* app = context;
@@ -13,14 +14,14 @@ void astraeon_demo_handle_input(InputEvent* event, void* context) {
     if(event->type == InputTypeShort && event->key == InputKeyBack) {
         astraeon_application_stop();
     } else if(event->type == InputTypeShort && event->key == InputKeyDown) {
-        if(app->app.ui.menu_index < 4) {
-            app->app.ui.menu_index++;
-            astraeon_application_request_redraw();
-        }
+        app->app.ui.current_screen =
+            astraeon_screen_next((AstraeonScreen)app->app.ui.current_screen);
+        app->app.ui.menu_index = app->app.ui.current_screen;
+        astraeon_application_request_redraw();
     } else if(event->type == InputTypeShort && event->key == InputKeyUp) {
-        if(app->app.ui.menu_index > 0) {
-            app->app.ui.menu_index--;
-            astraeon_application_request_redraw();
-        }
+        app->app.ui.current_screen =
+            astraeon_screen_previous((AstraeonScreen)app->app.ui.current_screen);
+        app->app.ui.menu_index = app->app.ui.current_screen;
+        astraeon_application_request_redraw();
     }
 }
