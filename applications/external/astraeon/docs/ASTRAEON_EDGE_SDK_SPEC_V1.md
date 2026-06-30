@@ -69,9 +69,9 @@ Implemented runtime:
 Implemented services:
 - astra_policy
 - astra_storage
+- astra_logger
 
 Planned services:
-- astra_logger
 - astra_audit
 - astra_validation
 

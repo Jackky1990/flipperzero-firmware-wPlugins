@@ -43,6 +43,7 @@ int main(void) {
     run_test("runtime_ping", astra_test_runtime_ping);
     run_test("policy", astra_test_policy);
     run_test("storage", astra_test_storage);
+    run_test("logger", astra_test_logger);
 
     printf("----------------------\n");
     printf("%d / %d PASSED\n", passed, total);

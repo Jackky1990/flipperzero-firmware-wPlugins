@@ -40,7 +40,8 @@
     ],
     "services": [
       "astra_policy",
-      "astra_storage"
+      "astra_storage",
+      "astra_logger"
     ],
     "application": []
   },
