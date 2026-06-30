@@ -14,6 +14,7 @@ typedef struct {
     bool storage_ok;
     bool logger_ok;
     bool event_persistence_ok;
+    bool node01_ok;
     bool supports_stream;
     bool supports_packets;
     bool reliable;

@@ -32,4 +32,5 @@ bool astra_test_policy(void);
 bool astra_test_storage(void);
 bool astra_test_logger(void);
 bool astra_test_event_persistence(void);
+bool astra_test_node01(void);
 bool astra_test_run_all(void);

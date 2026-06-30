@@ -41,6 +41,7 @@ App(
                 "src/astra_storage.c",
                 "src/astra_logger.c",
                 "src/astra_event_persistence.c",
+                "src/astra_node01.c",
             ],
         ),
     ],

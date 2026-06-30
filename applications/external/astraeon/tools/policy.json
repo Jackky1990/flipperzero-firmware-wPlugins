@@ -42,7 +42,8 @@
       "astra_policy",
       "astra_storage",
       "astra_logger",
-      "astra_event_persistence"
+      "astra_event_persistence",
+      "astra_node01"
     ],
     "application": []
   },

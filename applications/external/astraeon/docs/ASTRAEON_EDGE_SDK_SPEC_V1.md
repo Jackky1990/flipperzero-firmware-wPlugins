@@ -71,13 +71,13 @@ Implemented services:
 - astra_storage
 - astra_logger
 - astra_event_persistence
+- astra_node01
 
 Planned services:
 - astra_audit
 - astra_validation
 
 Planned integration:
-- astra_node01
 - astra_mqtt
 - astra_homeassistant
 
