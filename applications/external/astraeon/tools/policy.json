@@ -39,7 +39,8 @@
       "astra_runtime_ping"
     ],
     "services": [
-      "astra_policy"
+      "astra_policy",
+      "astra_storage"
     ],
     "application": []
   },

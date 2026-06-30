@@ -29,4 +29,5 @@ bool astra_test_runtime_capabilities(void);
 bool astra_test_runtime_heartbeat(void);
 bool astra_test_runtime_ping(void);
 bool astra_test_policy(void);
+bool astra_test_storage(void);
 bool astra_test_run_all(void);
