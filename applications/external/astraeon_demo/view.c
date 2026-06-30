@@ -6,13 +6,30 @@
 
 void astraeon_demo_draw(Canvas* canvas, void* context) {
     AstraeonDemo* app = context;
+    AstraeonRuntimeContext* runtime = &app->app.runtime;
 
     canvas_clear(canvas);
     canvas_set_font(canvas, FontPrimary);
     canvas_draw_str_aligned(canvas, 64, 10, AlignCenter, AlignCenter, "ASTRAEON-X");
 
     canvas_set_font(canvas, FontSecondary);
-    canvas_draw_str_aligned(canvas, 64, 23, AlignCenter, AlignCenter, app->ping_pass ? "Runtime: READY" : "Runtime: FAIL");
+    canvas_draw_str_aligned(
+        canvas,
+        64,
+        21,
+        AlignCenter,
+        AlignCenter,
+        runtime->ping_ok ? "Runtime: READY" : "Runtime: FAIL");
+
+    char status[32];
+    snprintf(
+        status,
+        sizeof(status),
+        "P%u %s %s",
+        runtime->protocol_version,
+        runtime->supports_packets ? "PKT" : "RAW",
+        runtime->heartbeat_ok ? "HB" : "NOHB");
+    canvas_draw_str_aligned(canvas, 64, 31, AlignCenter, AlignCenter, status);
 
     uint8_t count = astraeon_screen_count();
     for(uint8_t i = 0; i < count; i++) {
@@ -23,6 +40,6 @@ void astraeon_demo_draw(Canvas* canvas, void* context) {
             "%c %s",
             app->app.ui.current_screen == i ? '>' : ' ',
             astraeon_screen_title((AstraeonScreen)i));
-        canvas_draw_str(canvas, 22, 36 + (i * 9), line);
+        canvas_draw_str(canvas, 22, 39 + (i * 6), line);
     }
 }

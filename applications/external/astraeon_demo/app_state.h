@@ -11,7 +11,4 @@ typedef struct {
     ViewPort* view_port;
     Gui* gui;
     bool running;
-    bool runtime_ready;
-    bool transport_ready;
-    bool ping_pass;
 } AstraeonDemo;
