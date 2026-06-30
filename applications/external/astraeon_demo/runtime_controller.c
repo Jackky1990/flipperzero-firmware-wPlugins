@@ -4,6 +4,7 @@
 #include "astra_event_persistence.h"
 #include "astra_logger.h"
 #include "astra_node01.h"
+#include "astra_node01_usb_bridge.h"
 #include "astra_policy.h"
 #include "astra_runtime_capabilities.h"
 #include "astra_runtime_handshake.h"
@@ -157,6 +158,23 @@ static bool astraeon_demo_runtime_check_node01(
     return astra_node01_send_event(&node, &event).status == AstraStatusOk;
 }
 
+static bool astraeon_demo_runtime_check_node01_usb(uint32_t diagnostic_runs) {
+    AstraEvent event;
+    AstraNode01UsbBridge bridge;
+
+    if(astra_event_builder_init(&event, AstraEventTypeDiagnosticsReport).status != AstraStatusOk ||
+       astra_node01_usb_bridge_init(&bridge).status != AstraStatusOk) {
+        return false;
+    }
+
+    snprintf(event.id, sizeof(event.id), "EVT-FLP-USB-%lu", (unsigned long)diagnostic_runs);
+    event.timestamp = diagnostic_runs;
+    event.source_module = AstraModuleDiagnostics;
+    event.status = AstraStatusOk;
+
+    return astra_node01_usb_bridge_send_event(&bridge, &event).status == AstraStatusOk;
+}
+
 void astraeon_demo_runtime_controller_start(
     AstraeonRuntimeContext* runtime,
     Storage* furi_storage) {
@@ -197,6 +215,7 @@ void astraeon_demo_runtime_controller_start(
         astraeon_demo_runtime_check_event_persistence(&astra_storage, diagnostic_runs);
     runtime->node01_ok =
         runtime->transport_ready && astraeon_demo_runtime_check_node01(&transport, diagnostic_runs);
+    runtime->node01_usb_ok = astraeon_demo_runtime_check_node01_usb(diagnostic_runs);
 
     runtime->ping_ok =
         runtime->transport_ready &&

@@ -39,11 +39,12 @@ static void astraeon_screen_status_draw(Canvas* canvas, void* context) {
     snprintf(
         line,
         sizeof(line),
-        "Svc:S%s L%s E%s N%s P%s",
+        "S%s L%s E%s N%s U%s P%s",
         runtime->storage_ok ? "+" : "-",
         runtime->logger_ok ? "+" : "-",
         runtime->event_persistence_ok ? "+" : "-",
         runtime->node01_ok ? "+" : "-",
+        runtime->node01_usb_ok ? "+" : "-",
         runtime->policy_ok ? "+" : "-");
     canvas_draw_str(canvas, 2, 55, line);
 }

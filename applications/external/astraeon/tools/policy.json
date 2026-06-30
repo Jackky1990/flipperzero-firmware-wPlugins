@@ -43,7 +43,8 @@
       "astra_storage",
       "astra_logger",
       "astra_event_persistence",
-      "astra_node01"
+      "astra_node01",
+      "astra_node01_usb_bridge"
     ],
     "application": []
   },

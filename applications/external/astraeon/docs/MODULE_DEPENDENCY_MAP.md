@@ -21,6 +21,8 @@ astra_logger -> astra_storage
 astra_storage -> Furi Storage API
 astra_node01 -> astra_runtime_transport
 astra_node01 -> astra_event
+astra_node01_usb_bridge -> astra_node01
+astra_node01_usb_bridge -> astra_runtime_usb_transport
 
 ## Forbidden
 

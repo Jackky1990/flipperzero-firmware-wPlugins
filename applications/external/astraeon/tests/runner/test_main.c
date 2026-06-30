@@ -46,6 +46,7 @@ int main(void) {
     run_test("logger", astra_test_logger);
     run_test("event_persistence", astra_test_event_persistence);
     run_test("node01", astra_test_node01);
+    run_test("node01_usb_bridge", astra_test_node01_usb_bridge);
 
     printf("----------------------\n");
     printf("%d / %d PASSED\n", passed, total);

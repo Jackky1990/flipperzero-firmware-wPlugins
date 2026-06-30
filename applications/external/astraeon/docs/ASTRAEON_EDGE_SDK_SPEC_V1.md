@@ -72,6 +72,7 @@ Implemented services:
 - astra_logger
 - astra_event_persistence
 - astra_node01
+- astra_node01_usb_bridge
 
 Planned services:
 - astra_audit
