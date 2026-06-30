@@ -39,9 +39,9 @@ static void astraeon_screen_status_draw(Canvas* canvas, void* context) {
     snprintf(
         line,
         sizeof(line),
-        "Ping:%s Max:%lu",
+        "Ping:%s Run:%lu",
         runtime->ping_ok ? "OK" : "--",
-        (unsigned long)runtime->max_payload_size);
+        (unsigned long)runtime->diagnostic_runs);
     canvas_draw_str(canvas, 2, 55, line);
 }
 

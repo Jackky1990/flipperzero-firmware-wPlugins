@@ -13,6 +13,7 @@ typedef struct {
     bool supports_stream;
     bool supports_packets;
     bool reliable;
+    uint32_t diagnostic_runs;
     uint32_t max_payload_size;
     uint16_t protocol_version;
 } AstraeonRuntimeContext;

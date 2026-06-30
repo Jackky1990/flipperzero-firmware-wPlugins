@@ -75,7 +75,9 @@ void astraeon_demo_runtime_controller_start(AstraeonRuntimeContext* runtime) {
         return;
     }
 
+    uint32_t diagnostic_runs = runtime->diagnostic_runs + 1;
     memset(runtime, 0, sizeof(*runtime));
+    runtime->diagnostic_runs = diagnostic_runs;
 
     AstraRuntimeTransport transport;
 
