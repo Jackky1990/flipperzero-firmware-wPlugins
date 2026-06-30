@@ -1,5 +1,6 @@
 #include "runtime_controller.h"
 
+#include "astra_policy.h"
 #include "astra_runtime_capabilities.h"
 #include "astra_runtime_handshake.h"
 #include "astra_runtime_heartbeat.h"
@@ -70,6 +71,15 @@ static bool astraeon_demo_runtime_check_heartbeat(void) {
            astra_runtime_heartbeat_should_send(&heartbeat, 1000);
 }
 
+static bool astraeon_demo_runtime_check_policy(void) {
+    AstraPolicy policy;
+    uint8_t payload = 0;
+
+    return astra_policy_init(&policy).status == AstraStatusOk &&
+           astra_policy_validate_command(&policy, 1, &payload, sizeof(payload)).status ==
+               AstraStatusOk;
+}
+
 void astraeon_demo_runtime_controller_start(AstraeonRuntimeContext* runtime) {
     if(!runtime) {
         return;
@@ -94,6 +104,7 @@ void astraeon_demo_runtime_controller_start(AstraeonRuntimeContext* runtime) {
     runtime->handshake_ok =
         runtime->capabilities_ok && astraeon_demo_runtime_check_handshake(runtime);
     runtime->heartbeat_ok = astraeon_demo_runtime_check_heartbeat();
+    runtime->policy_ok = astraeon_demo_runtime_check_policy();
 
     runtime->ping_ok =
         runtime->transport_ready &&

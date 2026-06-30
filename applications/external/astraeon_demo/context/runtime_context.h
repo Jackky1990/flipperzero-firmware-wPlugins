@@ -10,6 +10,7 @@ typedef struct {
     bool capabilities_ok;
     bool handshake_ok;
     bool heartbeat_ok;
+    bool policy_ok;
     bool supports_stream;
     bool supports_packets;
     bool reliable;
