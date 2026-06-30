@@ -1,6 +1,10 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stdint.h>
+
+#include <gui/gui.h>
+#include <input/input.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,6 +18,17 @@ typedef enum {
     AstraeonScreenSubGhz,
 } AstraeonScreen;
 
+typedef void (*AstraeonScreenDrawCallback)(Canvas* canvas, void* context);
+typedef bool (*AstraeonScreenInputCallback)(InputEvent* event, void* context);
+
+typedef struct {
+    AstraeonScreen id;
+    const char* title;
+    AstraeonScreenDrawCallback draw;
+    AstraeonScreenInputCallback input;
+} AstraeonScreenInfo;
+
+const AstraeonScreenInfo* astraeon_screen_info(AstraeonScreen screen);
 const char* astraeon_screen_title(AstraeonScreen screen);
 uint8_t astraeon_screen_count(void);
 AstraeonScreen astraeon_screen_next(AstraeonScreen screen);

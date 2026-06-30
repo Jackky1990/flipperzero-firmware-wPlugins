@@ -1,26 +1,26 @@
 #include "screen_manager.h"
 
-typedef struct {
-    AstraeonScreen id;
-    const char* title;
-} AstraeonScreenInfo;
-
 static const AstraeonScreenInfo astraeon_screens[] = {
-    {AstraeonScreenStatus, "Status"},
-    {AstraeonScreenGpio, "GPIO"},
-    {AstraeonScreenNfc, "NFC"},
-    {AstraeonScreenRfid, "RFID"},
-    {AstraeonScreenSubGhz, "SubGHz"},
+    {AstraeonScreenStatus, "Status", 0, 0},
+    {AstraeonScreenGpio, "GPIO", 0, 0},
+    {AstraeonScreenNfc, "NFC", 0, 0},
+    {AstraeonScreenRfid, "RFID", 0, 0},
+    {AstraeonScreenSubGhz, "SubGHz", 0, 0},
 };
 
-const char* astraeon_screen_title(AstraeonScreen screen) {
+const AstraeonScreenInfo* astraeon_screen_info(AstraeonScreen screen) {
     for(uint8_t i = 0; i < astraeon_screen_count(); i++) {
         if(astraeon_screens[i].id == screen) {
-            return astraeon_screens[i].title;
+            return &astraeon_screens[i];
         }
     }
 
-    return "Unknown";
+    return 0;
+}
+
+const char* astraeon_screen_title(AstraeonScreen screen) {
+    const AstraeonScreenInfo* info = astraeon_screen_info(screen);
+    return info ? info->title : "Unknown";
 }
 
 uint8_t astraeon_screen_count(void) {
