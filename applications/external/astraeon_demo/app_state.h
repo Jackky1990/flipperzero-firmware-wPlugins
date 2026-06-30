@@ -14,5 +14,4 @@ typedef struct {
     bool runtime_ready;
     bool transport_ready;
     bool ping_pass;
-    uint8_t menu_index;
 } AstraeonDemo;

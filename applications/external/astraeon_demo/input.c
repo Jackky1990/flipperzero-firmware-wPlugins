@@ -16,12 +16,10 @@ void astraeon_demo_handle_input(InputEvent* event, void* context) {
     } else if(event->type == InputTypeShort && event->key == InputKeyDown) {
         app->app.ui.current_screen =
             astraeon_screen_next((AstraeonScreen)app->app.ui.current_screen);
-        app->app.ui.menu_index = app->app.ui.current_screen;
         astraeon_application_request_redraw();
     } else if(event->type == InputTypeShort && event->key == InputKeyUp) {
         app->app.ui.current_screen =
             astraeon_screen_previous((AstraeonScreen)app->app.ui.current_screen);
-        app->app.ui.menu_index = app->app.ui.current_screen;
         astraeon_application_request_redraw();
     }
 }
