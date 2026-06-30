@@ -26,3 +26,27 @@ const char* astraeon_screen_title(AstraeonScreen screen) {
 uint8_t astraeon_screen_count(void) {
     return sizeof(astraeon_screens) / sizeof(astraeon_screens[0]);
 }
+
+AstraeonScreen astraeon_screen_next(AstraeonScreen screen) {
+    uint8_t count = astraeon_screen_count();
+
+    for(uint8_t i = 0; i < count; i++) {
+        if(astraeon_screens[i].id == screen) {
+            return astraeon_screens[(i + 1) % count].id;
+        }
+    }
+
+    return AstraeonScreenStatus;
+}
+
+AstraeonScreen astraeon_screen_previous(AstraeonScreen screen) {
+    uint8_t count = astraeon_screen_count();
+
+    for(uint8_t i = 0; i < count; i++) {
+        if(astraeon_screens[i].id == screen) {
+            return astraeon_screens[(i + count - 1) % count].id;
+        }
+    }
+
+    return AstraeonScreenStatus;
+}
