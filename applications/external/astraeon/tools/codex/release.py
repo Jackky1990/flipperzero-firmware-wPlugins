@@ -15,6 +15,7 @@ def main():
     parser = argparse.ArgumentParser(description="ASTRAEON release pipeline")
     parser.add_argument("--tag", required=True)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--dev", action="store_true", help="Allow testing while release.py is modified")
     args = parser.parse_args()
 
     fap = Path("build/f7-firmware-C/.extapps/astraeon_demo.fap")
@@ -25,7 +26,7 @@ def main():
         "applications/external/astraeon/tools/codex/astraeon_ci.py",
     ]
 
-    if args.dry_run:
+    if args.dev:
         ci_cmd.extend([
             "--expect",
             "applications/external/astraeon/tools/codex/release.py",
