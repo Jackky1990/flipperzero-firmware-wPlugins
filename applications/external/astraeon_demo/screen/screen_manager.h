@@ -31,6 +31,7 @@ typedef struct {
 const AstraeonScreenInfo* astraeon_screen_info(AstraeonScreen screen);
 const char* astraeon_screen_title(AstraeonScreen screen);
 void astraeon_screen_draw(AstraeonScreen screen, Canvas* canvas, void* context);
+bool astraeon_screen_handle_input(AstraeonScreen screen, InputEvent* event, void* context);
 uint8_t astraeon_screen_count(void);
 AstraeonScreen astraeon_screen_next(AstraeonScreen screen);
 AstraeonScreen astraeon_screen_previous(AstraeonScreen screen);

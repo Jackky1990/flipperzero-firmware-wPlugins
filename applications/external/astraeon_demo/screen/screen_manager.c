@@ -1,6 +1,7 @@
 #include "screen_manager.h"
 
 #include "app_state.h"
+#include "runtime_controller.h"
 
 #include <stdio.h>
 
@@ -44,8 +45,18 @@ static void astraeon_screen_status_draw(Canvas* canvas, void* context) {
     canvas_draw_str(canvas, 2, 55, line);
 }
 
+static bool astraeon_screen_status_input(InputEvent* event, void* context) {
+    if(event->type != InputTypeShort || event->key != InputKeyOk) {
+        return false;
+    }
+
+    AstraeonDemo* app = context;
+    astraeon_demo_runtime_controller_start(&app->app.runtime);
+    return true;
+}
+
 static const AstraeonScreenInfo astraeon_screens[] = {
-    {AstraeonScreenStatus, "Status", astraeon_screen_status_draw, 0},
+    {AstraeonScreenStatus, "Status", astraeon_screen_status_draw, astraeon_screen_status_input},
     {AstraeonScreenGpio, "GPIO", 0, 0},
     {AstraeonScreenNfc, "NFC", 0, 0},
     {AstraeonScreenRfid, "RFID", 0, 0},
@@ -77,6 +88,16 @@ void astraeon_screen_draw(AstraeonScreen screen, Canvas* canvas, void* context) 
 
     (void)context;
     canvas_draw_str_aligned(canvas, 64, 38, AlignCenter, AlignCenter, "Diagnostics pending");
+}
+
+bool astraeon_screen_handle_input(AstraeonScreen screen, InputEvent* event, void* context) {
+    const AstraeonScreenInfo* info = astraeon_screen_info(screen);
+
+    if(info && info->input) {
+        return info->input(event, context);
+    }
+
+    return false;
 }
 
 uint8_t astraeon_screen_count(void) {
