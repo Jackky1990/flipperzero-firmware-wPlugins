@@ -13,6 +13,7 @@ typedef struct {
     bool policy_ok;
     bool storage_ok;
     bool logger_ok;
+    bool event_persistence_ok;
     bool supports_stream;
     bool supports_packets;
     bool reliable;

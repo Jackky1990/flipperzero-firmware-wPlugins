@@ -1,5 +1,7 @@
 #include "runtime_controller.h"
 
+#include "astra_event_builder.h"
+#include "astra_event_persistence.h"
 #include "astra_logger.h"
 #include "astra_policy.h"
 #include "astra_runtime_capabilities.h"
@@ -11,6 +13,7 @@
 #include "astra_storage.h"
 #include "storage_adapter.h"
 
+#include <stdio.h>
 #include <string.h>
 
 static void astraeon_demo_runtime_capture_transport(
@@ -104,6 +107,32 @@ static bool astraeon_demo_runtime_check_logger(
            adapter->append_bytes > 0;
 }
 
+static bool astraeon_demo_runtime_check_event_persistence(
+    AstraStorage* storage,
+    uint32_t diagnostic_runs) {
+    AstraEvent event;
+    AstraEventPersistence persistence;
+
+    if(astra_event_builder_init(&event, AstraEventTypeDiagnosticsReport).status != AstraStatusOk ||
+       astra_event_persistence_init(&persistence, storage).status != AstraStatusOk) {
+        return false;
+    }
+
+    snprintf(event.id, sizeof(event.id), "EVT-FLP-DIAG-%lu", (unsigned long)diagnostic_runs);
+    snprintf(event.source_device, sizeof(event.source_device), "FLP-JACK-01");
+    snprintf(event.target_device, sizeof(event.target_device), "NODE01");
+
+    event.category = AstraEventCategoryDiagnostics;
+    event.state = AstraEventStateCompleted;
+    event.priority = AstraEventPriorityNormal;
+    event.flags = AstraEventFlagPersist;
+    event.timestamp = diagnostic_runs;
+    event.source_module = AstraModuleDiagnostics;
+    event.status = AstraStatusOk;
+
+    return astra_event_persistence_append(&persistence, &event).status == AstraStatusOk;
+}
+
 void astraeon_demo_runtime_controller_start(
     AstraeonRuntimeContext* runtime,
     Storage* furi_storage) {
@@ -139,6 +168,9 @@ void astraeon_demo_runtime_controller_start(
         astraeon_demo_runtime_check_storage(&astra_storage, &storage_adapter, furi_storage);
     runtime->logger_ok =
         runtime->storage_ok && astraeon_demo_runtime_check_logger(&astra_storage, &storage_adapter);
+    runtime->event_persistence_ok =
+        runtime->storage_ok &&
+        astraeon_demo_runtime_check_event_persistence(&astra_storage, diagnostic_runs);
 
     runtime->ping_ok =
         runtime->transport_ready &&

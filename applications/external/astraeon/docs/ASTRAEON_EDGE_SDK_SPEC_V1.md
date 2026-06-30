@@ -70,6 +70,7 @@ Implemented services:
 - astra_policy
 - astra_storage
 - astra_logger
+- astra_event_persistence
 
 Planned services:
 - astra_audit
