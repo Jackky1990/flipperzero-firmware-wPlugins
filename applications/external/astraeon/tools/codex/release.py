@@ -24,6 +24,7 @@ def main():
     ci_cmd = [
         "python3",
         "applications/external/astraeon/tools/codex/astraeon_ci.py",
+        "--build-demo",
     ]
 
     if args.dev:
@@ -35,8 +36,6 @@ def main():
         ci_cmd.append("--clean")
 
     run(ci_cmd)
-    run(["./fbt", "fap_astraeon_demo"])
-    run(["python3", "applications/external/astraeon/tools/aep.py", "verify"])
 
     if not fap.exists():
         print(f"[ASTRAEON RELEASE] missing FAP: {fap}")
