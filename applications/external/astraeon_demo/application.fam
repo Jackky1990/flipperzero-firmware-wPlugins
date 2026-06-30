@@ -8,7 +8,7 @@ App(
     fap_author="Jack",
     fap_version="0.1",
     fap_description="ASTRAEON-X runtime demo application.",
-    sources=["astraeon_demo.c", "view.c", "input.c", "runtime_bootstrap.c", "application/application.c"],
+    sources=["astraeon_demo.c", "view.c", "input.c", "runtime_bootstrap.c", "application/application.c", "screen/screen_manager.c"],
     fap_private_libs=[
         Lib(
             name="astraeon_sdk",
