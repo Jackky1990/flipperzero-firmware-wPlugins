@@ -1,0 +1,12 @@
+version: 1
+name: ASTRAEON Engineering Contract
+rules:
+  inspect_before_modify: true
+  one_logical_change: true
+  ci_required: true
+  architecture_review_required: true
+  no_runtime_regression: true
+  preserve_behavior: true
+  commit_after_green: true
+  no_large_terminal_paste: true
+  framework_first_when_module_grows: true

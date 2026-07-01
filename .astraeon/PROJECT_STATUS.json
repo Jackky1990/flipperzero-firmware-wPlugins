@@ -1,0 +1,13 @@
+{
+  "project": "ASTRAEON-X",
+  "orchestrator": "AEO",
+  "phase": "R6 Release Framework Refactor",
+  "health": "GREEN",
+  "source_of_truth": "git",
+  "roles": {
+    "architect": "ChatGPT",
+    "engineer": "Codex",
+    "qa": "CI"
+  },
+  "updated_by": "Codex"
+}
