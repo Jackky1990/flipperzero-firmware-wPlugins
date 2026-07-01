@@ -8,6 +8,7 @@
 #include "astra_device_subghz.h"
 #include "astra_device_usb.h"
 #include "astra_tests.h"
+#include "../../sdk/src/astra_flipper_gpio_adapter.h"
 
 bool astra_test_device(void) {
     AstraDevice device;
@@ -20,6 +21,7 @@ bool astra_test_device(void) {
     AstraDeviceRFID rfid = {0};
     AstraDeviceIR ir = {0};
     AstraDeviceSubGhz subghz = {0};
+    AstraFlipperGPIOAdapter gpio_adapter;
 
     if(astra_device_init(0, "flipper").status != AstraStatusInvalidArgument) {
         return false;
@@ -73,6 +75,30 @@ bool astra_test_device(void) {
     subghz.supports_rx = true;
     subghz.min_frequency_hz = 300000000;
     subghz.max_frequency_hz = 928000000;
+
+    if(astra_flipper_gpio_adapter_init(0).status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astra_flipper_gpio_adapter_init(&gpio_adapter).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_flipper_gpio_adapter_validate(&gpio_adapter).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_flipper_gpio_adapter_pin_count(&gpio_adapter) != AstraFlipperGPIOPinCount) {
+        return false;
+    }
+
+    if(!astra_flipper_gpio_adapter_pin_at(&gpio_adapter, AstraFlipperGPIOPinPA7)) {
+        return false;
+    }
+
+    if(astra_flipper_gpio_adapter_pin_at(&gpio_adapter, AstraFlipperGPIOPinCount)) {
+        return false;
+    }
 
     return astra_device_usb_validate(&usb).status == AstraStatusOk &&
            astra_device_serial_validate(&serial).status == AstraStatusOk &&

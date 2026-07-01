@@ -1,25 +1,23 @@
 # Next Action
 
-R6R-5 is complete. The release framework now includes a GitHub Release Publisher with dry-run and publish paths while preserving current release pipeline behavior.
+R7B is complete. The ASTRAEON device layer now has a Flipper GPIO adapter skeleton that validates GPIO contracts without performing hardware access.
 
 ## Architecture Status
 
-Approved. The current release flow is:
+Approved. The current device HAL flow is:
 
-- `release.py`
-- `release/pipeline.py`
-- `release/artifact.py`
-- `release/manifest.py`
-- `release/notes.py`
-- `release/github.py`
+- ASTRAEON Device HAL contracts
+- Flipper GPIO adapter skeleton
+- No GPIO read/write hardware calls
+- No NFC, RFID, IR, SubGHz, BLE, USB, or Serial adapter work in this phase
 
 ## Remaining Work
 
-- Implement R6R-4a Verification Profile Layer.
-- Move verification scopes out of hardcoded release dev flow and task prompts.
-- Keep backward compatibility for existing `--expect` and `--allow` CI usage.
-- Exercise the GitHub publish path with a real release tag when the Architect approves an actual release.
+- Implement R7C GPIO Adapter Hardware Binding after Architect approval.
+- Bind skeleton pin records to Flipper `GpioPin` resources.
+- Add real GPIO read/write only in an approved hardware behavior phase.
+- Keep runtime and demo behavior unchanged until integration is explicitly approved.
 
 ## Next Implementation Step
 
-Create data-driven verification profiles without changing firmware, runtime, SDK, demo runtime, build system, or release output helpers.
+Prepare R7C by defining the smallest safe hardware binding step for GPIO only.
