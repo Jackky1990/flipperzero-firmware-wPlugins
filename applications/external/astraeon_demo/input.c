@@ -11,7 +11,10 @@ void astraeon_demo_input(InputEvent* event, void* context) {
 void astraeon_demo_handle_input(InputEvent* event, void* context) {
     AstraeonDemo* app = context;
 
-    if(event->type == InputTypeShort && event->key == InputKeyBack) {
+    if(event->type == InputTypeShort && event->key == InputKeyBack &&
+       astraeon_screen_handle_input((AstraeonScreen)app->app.ui.current_screen, event, app)) {
+        astraeon_application_request_redraw();
+    } else if(event->type == InputTypeShort && event->key == InputKeyBack) {
         astraeon_application_stop();
     } else if(event->type == InputTypeShort && event->key == InputKeyDown) {
         app->app.ui.current_screen =

@@ -5,6 +5,11 @@
 
 #include <stdio.h>
 
+AstraStatus astraeon_demo_runtime_controller_request_gpio_write(
+    AstraeonRuntimeContext* runtime,
+    Storage* storage);
+AstraStatus astraeon_demo_runtime_controller_cancel_gpio_write(AstraeonRuntimeContext* runtime);
+
 static void astraeon_screen_status_draw(Canvas* canvas, void* context) {
     AstraeonDemo* app = context;
     AstraeonRuntimeContext* runtime = &app->app.runtime;
@@ -53,31 +58,62 @@ static void astraeon_screen_gpio_draw(Canvas* canvas, void* context) {
     char line[32];
 
     canvas_set_font(canvas, FontSecondary);
-    canvas_draw_str_aligned(canvas, 64, 21, AlignCenter, AlignCenter, "GPIO Read");
-    canvas_draw_str_aligned(canvas, 64, 34, AlignCenter, AlignCenter, "Pin: PC0");
+    canvas_draw_str_aligned(canvas, 64, 12, AlignCenter, AlignCenter, "GPIO PC0");
 
     snprintf(
         line,
         sizeof(line),
-        "Status: %s",
-        runtime->gpio_read_checked ? (runtime->gpio_read_ok ? "OK" : "SAFE") : "WAIT");
-    canvas_draw_str_aligned(canvas, 64, 47, AlignCenter, AlignCenter, line);
-
-    snprintf(
-        line,
-        sizeof(line),
-        "Value: %s",
+        "Read:%s %s",
+        runtime->gpio_read_checked ? (runtime->gpio_read_ok ? "OK" : "SAFE") : "WAIT",
         runtime->gpio_read_ok ? (runtime->gpio_read_value ? "HIGH" : "LOW") : "--");
-    canvas_draw_str_aligned(canvas, 64, 60, AlignCenter, AlignCenter, line);
+    canvas_draw_str_aligned(canvas, 64, 25, AlignCenter, AlignCenter, line);
+
+    const char* write_status = "WAIT";
+    if(runtime->gpio_write_confirm_required) {
+        write_status = "CONFIRM";
+    } else if(runtime->gpio_write_session_active) {
+        write_status = "BUSY";
+    } else if(runtime->gpio_write_checked) {
+        write_status = runtime->gpio_write_ok ? "OK" : "SAFE";
+    }
+
+    snprintf(line, sizeof(line), "Write:%s", write_status);
+    canvas_draw_str_aligned(canvas, 64, 38, AlignCenter, AlignCenter, line);
+
+    snprintf(
+        line,
+        sizeof(line),
+        "Restore:%u",
+        (unsigned)runtime->gpio_write_restore_count);
+    canvas_draw_str_aligned(canvas, 64, 51, AlignCenter, AlignCenter, line);
+
+    canvas_draw_str_aligned(
+        canvas,
+        64,
+        63,
+        AlignCenter,
+        AlignCenter,
+        runtime->gpio_write_confirm_required ? "OK to write" : "OK to arm");
 }
 
 static bool astraeon_screen_gpio_input(InputEvent* event, void* context) {
+    AstraeonDemo* app = context;
+
+    if(event->type == InputTypeShort && event->key == InputKeyBack) {
+        if(!app->app.runtime.gpio_write_confirm_required &&
+           !app->app.runtime.gpio_write_session_active) {
+            return false;
+        }
+
+        astraeon_demo_runtime_controller_cancel_gpio_write(&app->app.runtime);
+        return true;
+    }
+
     if(event->type != InputTypeShort || event->key != InputKeyOk) {
         return false;
     }
 
-    AstraeonDemo* app = context;
-    astraeon_demo_runtime_controller_validate_gpio_read(
+    astraeon_demo_runtime_controller_request_gpio_write(
         &app->app.runtime,
         app->app.platform.storage);
     return true;

@@ -203,7 +203,7 @@ static bool astraeon_demo_runtime_check_gpio_adapter(AstraeonRuntimeContext* run
     return true;
 }
 
-static void astraeon_demo_runtime_record_gpio_read(
+static void astraeon_demo_runtime_record_gpio_session(
     AstraStorage* storage,
     const char* session_id,
     uint32_t validation_runs,
@@ -213,7 +213,7 @@ static void astraeon_demo_runtime_record_gpio_read(
     AstraEventPersistence persistence;
 
     if(astra_logger_init(&logger, storage).status == AstraStatusOk) {
-        char line[64];
+        char line[96];
         snprintf(
             line,
             sizeof(line),
@@ -249,7 +249,7 @@ static void astraeon_demo_runtime_log_gpio_step(
     const char* step,
     AstraStatus status) {
     AstraLogger logger;
-    char line[80];
+    char line[96];
 
     if(astra_logger_init(&logger, storage).status != AstraStatusOk) {
         return;
@@ -263,6 +263,155 @@ static void astraeon_demo_runtime_log_gpio_step(
         step,
         astra_status_to_string(status));
     astra_logger_log(&logger, AstraLogLevelInfo, line);
+}
+
+AstraStatus astraeon_demo_runtime_controller_cancel_gpio_write(AstraeonRuntimeContext* runtime) {
+    return astraeon_runtime_gpio_write_cancel(runtime);
+}
+
+AstraStatus astraeon_demo_runtime_controller_timeout_gpio_write(AstraeonRuntimeContext* runtime) {
+    return astraeon_runtime_gpio_write_timeout(runtime);
+}
+
+AstraStatus astraeon_demo_runtime_controller_request_gpio_write(
+    AstraeonRuntimeContext* runtime,
+    Storage* furi_storage) {
+    if(!runtime) {
+        return AstraStatusInvalidArgument;
+    }
+
+    if(!runtime->gpio_write_confirm_required) {
+        return astraeon_runtime_gpio_write_request_confirmation(runtime);
+    }
+
+    AstraStatus begin_status = astraeon_runtime_gpio_write_begin(runtime);
+    if(begin_status != AstraStatusOk) {
+        return begin_status;
+    }
+
+    bool binding_ok = false;
+    bool output_mode_changed = false;
+    bool low_final_attempted = false;
+    AstraResult session_result;
+    AstraResult step_result;
+    AstraResult restore_result = astra_result_ok();
+    AstraFlipperGPIOAdapter adapter;
+    AstraFlipperGPIOPinId pin = AstraFlipperGPIOPinPC0;
+    uint32_t validation_runs = runtime->gpio_write_runs;
+    char session_id[32];
+
+    snprintf(
+        session_id,
+        sizeof(session_id),
+        "EVT-FLP-GPIO-WRITE-%lu",
+        (unsigned long)validation_runs);
+
+    runtime->gpio_write_pin = (uint8_t)pin;
+    runtime->gpio_write_status = AstraStatusInternalError;
+
+    session_result = astra_flipper_gpio_adapter_init(&adapter);
+    if(session_result.status == AstraStatusOk) {
+        session_result = astra_flipper_gpio_adapter_bind_resources(&adapter);
+        binding_ok = session_result.status == AstraStatusOk;
+    }
+
+    AstraStorage astra_storage;
+    AstraeonStorageAdapter storage_adapter;
+    bool storage_ready =
+        astraeon_demo_runtime_check_storage(&astra_storage, &storage_adapter, furi_storage);
+
+    if(storage_ready) {
+        astraeon_demo_runtime_log_gpio_step(
+            &astra_storage,
+            session_id,
+            "begin",
+            session_result.status);
+    }
+
+    if(session_result.status == AstraStatusOk) {
+        session_result = astra_flipper_gpio_adapter_set_output_low_mode(
+            &adapter,
+            pin,
+            &output_mode_changed);
+        astraeon_runtime_gpio_write_set_mode_changed(runtime, output_mode_changed);
+        if(storage_ready) {
+            astraeon_demo_runtime_log_gpio_step(
+                &astra_storage,
+                session_id,
+                "output-low",
+                session_result.status);
+        }
+    }
+
+    if(session_result.status == AstraStatusOk) {
+        session_result = astra_flipper_gpio_adapter_write_pin(&adapter, pin, true);
+        if(storage_ready) {
+            astraeon_demo_runtime_log_gpio_step(
+                &astra_storage,
+                session_id,
+                "output-high",
+                session_result.status);
+        }
+    }
+
+    if(session_result.status == AstraStatusOk) {
+        session_result = astra_flipper_gpio_adapter_write_pin(&adapter, pin, false);
+        low_final_attempted = true;
+        if(storage_ready) {
+            astraeon_demo_runtime_log_gpio_step(
+                &astra_storage,
+                session_id,
+                "output-low-final",
+                session_result.status);
+        }
+    }
+
+    if(output_mode_changed) {
+        if(!low_final_attempted) {
+            step_result = astra_flipper_gpio_adapter_write_pin(&adapter, pin, false);
+            if(storage_ready) {
+                astraeon_demo_runtime_log_gpio_step(
+                    &astra_storage,
+                    session_id,
+                    "output-low-final",
+                    step_result.status);
+            }
+            if(session_result.status == AstraStatusOk && step_result.status != AstraStatusOk) {
+                session_result = step_result;
+            }
+        }
+
+        restore_result = astra_flipper_gpio_adapter_restore_if_needed(&adapter, pin);
+        astraeon_runtime_gpio_write_mark_restore(runtime);
+        if(storage_ready) {
+            astraeon_demo_runtime_log_gpio_step(
+                &astra_storage,
+                session_id,
+                "restore",
+                restore_result.status);
+        }
+        if(session_result.status == AstraStatusOk && restore_result.status != AstraStatusOk) {
+            session_result = restore_result;
+        }
+    }
+
+    runtime->gpio_adapter_bound = binding_ok;
+    astraeon_runtime_gpio_write_finish(runtime, session_result.status);
+
+    if(storage_ready) {
+        astraeon_demo_runtime_record_gpio_session(
+            &astra_storage,
+            session_id,
+            validation_runs,
+            session_result.status);
+        astraeon_demo_runtime_log_gpio_step(
+            &astra_storage,
+            session_id,
+            "end",
+            session_result.status);
+    }
+
+    return session_result.status;
 }
 
 void astraeon_demo_runtime_controller_validate_gpio_read(
@@ -362,7 +511,7 @@ void astraeon_demo_runtime_controller_validate_gpio_read(
     runtime->gpio_read_value = runtime->gpio_read_ok && value;
 
     if(storage_ready) {
-        astraeon_demo_runtime_record_gpio_read(
+        astraeon_demo_runtime_record_gpio_session(
             &astra_storage,
             session_id,
             validation_runs,

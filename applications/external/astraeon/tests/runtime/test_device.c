@@ -9,6 +9,7 @@
 #include "astra_device_usb.h"
 #include "astra_tests.h"
 #include "../../sdk/src/astra_flipper_gpio_adapter.h"
+#include "../../../astraeon_demo/context/runtime_context.h"
 
 bool astra_test_device(void) {
     AstraDevice device;
@@ -22,6 +23,7 @@ bool astra_test_device(void) {
     AstraDeviceIR ir = {0};
     AstraDeviceSubGhz subghz = {0};
     AstraFlipperGPIOAdapter gpio_adapter;
+    AstraeonRuntimeContext gpio_write_runtime = {0};
     bool gpio_value = false;
     bool gpio_mode_changed = true;
 
@@ -224,6 +226,73 @@ bool astra_test_device(void) {
 
     if(astra_flipper_gpio_adapter_restore_if_needed(&gpio_adapter, AstraFlipperGPIOPinPC0).status !=
        AstraStatusNotFound) {
+        return false;
+    }
+
+    if(astraeon_runtime_gpio_write_request_confirmation(0) != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astraeon_runtime_gpio_write_request_confirmation(&gpio_write_runtime) != AstraStatusOk) {
+        return false;
+    }
+
+    if(!gpio_write_runtime.gpio_write_confirm_required ||
+       gpio_write_runtime.gpio_write_state != AstraeonGPIOWriteStateConfirmRequired) {
+        return false;
+    }
+
+    if(astraeon_runtime_gpio_write_begin(&gpio_write_runtime) != AstraStatusOk) {
+        return false;
+    }
+
+    if(!gpio_write_runtime.gpio_write_session_active ||
+       gpio_write_runtime.gpio_write_confirm_required ||
+       gpio_write_runtime.gpio_write_runs != 1 ||
+       gpio_write_runtime.gpio_write_state != AstraeonGPIOWriteStateActive) {
+        return false;
+    }
+
+    if(astraeon_runtime_gpio_write_begin(&gpio_write_runtime) != AstraStatusBusy) {
+        return false;
+    }
+
+    astraeon_runtime_gpio_write_finish(&gpio_write_runtime, AstraStatusOk);
+    if(gpio_write_runtime.gpio_write_session_active || !gpio_write_runtime.gpio_write_ok ||
+       gpio_write_runtime.gpio_write_status != AstraStatusOk) {
+        return false;
+    }
+
+    gpio_write_runtime = (AstraeonRuntimeContext){0};
+    astraeon_runtime_gpio_write_request_confirmation(&gpio_write_runtime);
+    if(astraeon_runtime_gpio_write_cancel(&gpio_write_runtime) != AstraStatusPolicyDenied ||
+       gpio_write_runtime.gpio_write_confirm_required ||
+       gpio_write_runtime.gpio_write_status != AstraStatusPolicyDenied) {
+        return false;
+    }
+
+    gpio_write_runtime = (AstraeonRuntimeContext){0};
+    astraeon_runtime_gpio_write_request_confirmation(&gpio_write_runtime);
+    if(astraeon_runtime_gpio_write_timeout(&gpio_write_runtime) != AstraStatusTimeout ||
+       gpio_write_runtime.gpio_write_confirm_required ||
+       gpio_write_runtime.gpio_write_status != AstraStatusTimeout) {
+        return false;
+    }
+
+    gpio_write_runtime = (AstraeonRuntimeContext){0};
+    astraeon_runtime_gpio_write_request_confirmation(&gpio_write_runtime);
+    astraeon_runtime_gpio_write_begin(&gpio_write_runtime);
+    astraeon_runtime_gpio_write_set_mode_changed(&gpio_write_runtime, true);
+    astraeon_runtime_gpio_write_mark_restore(&gpio_write_runtime);
+    astraeon_runtime_gpio_write_mark_restore(&gpio_write_runtime);
+    if(!gpio_write_runtime.gpio_write_restored ||
+       gpio_write_runtime.gpio_write_restore_count != 1) {
+        return false;
+    }
+
+    astraeon_runtime_gpio_write_finish(&gpio_write_runtime, AstraStatusOk);
+    if(!gpio_write_runtime.gpio_write_checked || !gpio_write_runtime.gpio_write_ok ||
+       gpio_write_runtime.gpio_write_state != AstraeonGPIOWriteStateCompleted) {
         return false;
     }
 
