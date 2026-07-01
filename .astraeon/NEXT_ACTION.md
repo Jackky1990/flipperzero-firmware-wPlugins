@@ -1,6 +1,6 @@
 # Next Action
 
-R7D-5B is complete. ASTRAEON controlled GPIO write validation is wired through a controller-owned validation session. The GPIO screen now requires explicit confirmation before running the one-shot PC0 output sequence.
+R7D-5C is blocked. Controlled GPIO write hardware validation must not continue until reliable validation hardware is available. The legacy board is damaged and must not be used for GPIO write validation.
 
 ## Architecture Status
 
@@ -27,12 +27,17 @@ Approved. The current device HAL flow is:
 - No background GPIO write or polling
 - No NFC, RFID, IR, SubGHz, BLE, USB, or Serial adapter work in this phase
 
+## Blocker
+
+- Need LED + 330Ω/1kΩ resistor or validated hardware test board.
+- Do not continue GPIO hardware write validation with the damaged legacy board.
+
 ## Remaining Work
 
-- Perform R7D-5C controlled GPIO write hardware validation on a current-limited LED or logic analyzer setup.
-- Confirm PC0 LOW -> HIGH -> LOW -> Analog restore behavior on real hardware.
+- Prepare ASTRAEON Hardware Validation Board plan.
+- Define safe PC0 validation hardware before resuming controlled GPIO write validation.
 - Keep PC0 as the only validation target unless Architect changes the pin policy.
 
 ## Next Implementation Step
 
-Prepare R7D-5C Controlled GPIO Write Hardware Validation for Architect review. Do not expand pin selection, add polling, or add interrupts without explicit approval.
+Prepare ASTRAEON Hardware Validation Board plan for Architect review. Do not modify firmware code, expand pin selection, add polling, or add interrupts without explicit approval.
