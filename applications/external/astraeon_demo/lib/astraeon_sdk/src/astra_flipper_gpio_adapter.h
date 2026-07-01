@@ -49,10 +49,20 @@ AstraResult astra_flipper_gpio_adapter_set_input_mode(
     AstraFlipperGPIOPinId pin,
     bool* out_changed);
 
+AstraResult astra_flipper_gpio_adapter_set_output_low_mode(
+    const AstraFlipperGPIOAdapter* adapter,
+    AstraFlipperGPIOPinId pin,
+    bool* out_changed);
+
 AstraResult astra_flipper_gpio_adapter_read_pin(
     const AstraFlipperGPIOAdapter* adapter,
     AstraFlipperGPIOPinId pin,
     bool* out_value);
+
+AstraResult astra_flipper_gpio_adapter_write_pin(
+    const AstraFlipperGPIOAdapter* adapter,
+    AstraFlipperGPIOPinId pin,
+    bool value);
 
 AstraResult astra_flipper_gpio_adapter_restore_if_needed(
     const AstraFlipperGPIOAdapter* adapter,

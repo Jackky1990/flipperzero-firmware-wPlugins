@@ -121,6 +121,16 @@ bool astra_test_device(void) {
         return false;
     }
 
+    if(astra_flipper_gpio_adapter_set_output_low_mode(0, AstraFlipperGPIOPinPC0, &gpio_mode_changed)
+           .status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astra_flipper_gpio_adapter_set_output_low_mode(&gpio_adapter, AstraFlipperGPIOPinPC0, 0)
+           .status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
     if(astra_flipper_gpio_adapter_read_pin(&gpio_adapter, AstraFlipperGPIOPinPC0, 0).status !=
        AstraStatusInvalidArgument) {
         return false;
@@ -147,6 +157,19 @@ bool astra_test_device(void) {
         return false;
     }
 
+    gpio_mode_changed = true;
+    if(astra_flipper_gpio_adapter_set_output_low_mode(
+           &gpio_adapter,
+           AstraFlipperGPIOPinCount,
+           &gpio_mode_changed)
+           .status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(gpio_mode_changed) {
+        return false;
+    }
+
     if(astra_flipper_gpio_adapter_read_pin(
            &gpio_adapter,
            AstraFlipperGPIOPinPC0,
@@ -165,6 +188,37 @@ bool astra_test_device(void) {
     }
 
     if(gpio_mode_changed) {
+        return false;
+    }
+
+    gpio_mode_changed = true;
+    if(astra_flipper_gpio_adapter_set_output_low_mode(
+           &gpio_adapter,
+           AstraFlipperGPIOPinPC0,
+           &gpio_mode_changed)
+           .status != AstraStatusNotFound) {
+        return false;
+    }
+
+    if(gpio_mode_changed) {
+        return false;
+    }
+
+    if(astra_flipper_gpio_adapter_write_pin(0, AstraFlipperGPIOPinPC0, false).status !=
+       AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astra_flipper_gpio_adapter_write_pin(
+           &gpio_adapter,
+           AstraFlipperGPIOPinCount,
+           false)
+           .status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astra_flipper_gpio_adapter_write_pin(&gpio_adapter, AstraFlipperGPIOPinPC0, false).status !=
+       AstraStatusNotFound) {
         return false;
     }
 
