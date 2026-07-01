@@ -18,11 +18,17 @@ typedef struct {
     bool node01_usb_ok;
     bool gpio_adapter_ok;
     bool gpio_adapter_bound;
+    bool gpio_read_checked;
+    bool gpio_read_ok;
+    bool gpio_read_value;
     bool supports_stream;
     bool supports_packets;
     bool reliable;
     uint32_t diagnostic_runs;
+    uint32_t gpio_read_runs;
     uint32_t max_payload_size;
     uint16_t protocol_version;
     uint8_t gpio_adapter_pin_count;
+    uint8_t gpio_read_pin;
+    uint8_t gpio_read_status;
 } AstraeonRuntimeContext;

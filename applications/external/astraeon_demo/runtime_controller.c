@@ -203,6 +203,89 @@ static bool astraeon_demo_runtime_check_gpio_adapter(AstraeonRuntimeContext* run
     return true;
 }
 
+static void astraeon_demo_runtime_record_gpio_read(
+    AstraStorage* storage,
+    uint32_t validation_runs,
+    AstraStatus status) {
+    AstraLogger logger;
+    AstraEvent event;
+    AstraEventPersistence persistence;
+
+    if(astra_logger_init(&logger, storage).status == AstraStatusOk) {
+        char line[64];
+        snprintf(
+            line,
+            sizeof(line),
+            "gpio read-only validation status=%s",
+            astra_status_to_string(status));
+        astra_logger_log(&logger, AstraLogLevelInfo, line);
+    }
+
+    if(astra_event_builder_init(&event, AstraEventTypeDiagnosticsReport).status != AstraStatusOk ||
+       astra_event_persistence_init(&persistence, storage).status != AstraStatusOk) {
+        return;
+    }
+
+    snprintf(event.id, sizeof(event.id), "EVT-FLP-GPIO-READ-%lu", (unsigned long)validation_runs);
+    snprintf(event.source_device, sizeof(event.source_device), "FLP-JACK-01");
+    snprintf(event.target_device, sizeof(event.target_device), "NODE01");
+
+    event.category = AstraEventCategoryDiagnostics;
+    event.state = AstraEventStateCompleted;
+    event.priority = AstraEventPriorityNormal;
+    event.flags = AstraEventFlagPersist;
+    event.timestamp = validation_runs;
+    event.source_module = AstraModuleDiagnostics;
+    event.status = status;
+
+    astra_event_persistence_append(&persistence, &event);
+}
+
+void astraeon_demo_runtime_controller_validate_gpio_read(
+    AstraeonRuntimeContext* runtime,
+    Storage* furi_storage) {
+    if(!runtime) {
+        return;
+    }
+
+    bool value = false;
+    bool binding_ok = false;
+    AstraResult read_result;
+    AstraFlipperGPIOAdapter adapter;
+    AstraFlipperGPIOPinId pin = AstraFlipperGPIOPinPC0;
+    uint32_t validation_runs = runtime->gpio_read_runs + 1;
+
+    runtime->gpio_read_runs = validation_runs;
+    runtime->gpio_read_checked = true;
+    runtime->gpio_read_ok = false;
+    runtime->gpio_read_value = false;
+    runtime->gpio_read_pin = (uint8_t)pin;
+    runtime->gpio_read_status = AstraStatusInternalError;
+
+    read_result = astra_flipper_gpio_adapter_init(&adapter);
+    if(read_result.status == AstraStatusOk) {
+        read_result = astra_flipper_gpio_adapter_bind_resources(&adapter);
+        binding_ok = read_result.status == AstraStatusOk;
+    }
+    if(read_result.status == AstraStatusOk) {
+        read_result = astra_flipper_gpio_adapter_read_pin(&adapter, pin, &value);
+    }
+
+    runtime->gpio_adapter_bound = binding_ok;
+    runtime->gpio_read_status = read_result.status;
+    runtime->gpio_read_ok = read_result.status == AstraStatusOk;
+    runtime->gpio_read_value = runtime->gpio_read_ok && value;
+
+    AstraStorage astra_storage;
+    AstraeonStorageAdapter storage_adapter;
+    if(astraeon_demo_runtime_check_storage(&astra_storage, &storage_adapter, furi_storage)) {
+        astraeon_demo_runtime_record_gpio_read(
+            &astra_storage,
+            validation_runs,
+            read_result.status);
+    }
+}
+
 void astraeon_demo_runtime_controller_start(
     AstraeonRuntimeContext* runtime,
     Storage* furi_storage) {

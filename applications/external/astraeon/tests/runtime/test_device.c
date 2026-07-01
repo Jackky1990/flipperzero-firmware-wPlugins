@@ -22,6 +22,7 @@ bool astra_test_device(void) {
     AstraDeviceIR ir = {0};
     AstraDeviceSubGhz subghz = {0};
     AstraFlipperGPIOAdapter gpio_adapter;
+    bool gpio_value = false;
 
     if(astra_device_init(0, "flipper").status != AstraStatusInvalidArgument) {
         return false;
@@ -101,6 +102,32 @@ bool astra_test_device(void) {
     }
 
     if(astra_flipper_gpio_adapter_pin_at(&gpio_adapter, AstraFlipperGPIOPinCount)) {
+        return false;
+    }
+
+    if(astra_flipper_gpio_adapter_read_pin(0, AstraFlipperGPIOPinPC0, &gpio_value).status !=
+       AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astra_flipper_gpio_adapter_read_pin(&gpio_adapter, AstraFlipperGPIOPinPC0, 0).status !=
+       AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astra_flipper_gpio_adapter_read_pin(
+           &gpio_adapter,
+           AstraFlipperGPIOPinCount,
+           &gpio_value)
+           .status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astra_flipper_gpio_adapter_read_pin(
+           &gpio_adapter,
+           AstraFlipperGPIOPinPC0,
+           &gpio_value)
+           .status != AstraStatusNotFound) {
         return false;
     }
 

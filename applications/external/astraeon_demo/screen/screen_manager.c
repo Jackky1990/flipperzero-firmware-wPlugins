@@ -47,9 +47,45 @@ static bool astraeon_screen_status_input(InputEvent* event, void* context) {
     return true;
 }
 
+static void astraeon_screen_gpio_draw(Canvas* canvas, void* context) {
+    AstraeonDemo* app = context;
+    AstraeonRuntimeContext* runtime = &app->app.runtime;
+    char line[32];
+
+    canvas_set_font(canvas, FontSecondary);
+    canvas_draw_str_aligned(canvas, 64, 21, AlignCenter, AlignCenter, "GPIO Read");
+    canvas_draw_str_aligned(canvas, 64, 34, AlignCenter, AlignCenter, "Pin: PC0");
+
+    snprintf(
+        line,
+        sizeof(line),
+        "Status: %s",
+        runtime->gpio_read_checked ? (runtime->gpio_read_ok ? "OK" : "SAFE") : "WAIT");
+    canvas_draw_str_aligned(canvas, 64, 47, AlignCenter, AlignCenter, line);
+
+    snprintf(
+        line,
+        sizeof(line),
+        "Value: %s",
+        runtime->gpio_read_ok ? (runtime->gpio_read_value ? "HIGH" : "LOW") : "--");
+    canvas_draw_str_aligned(canvas, 64, 60, AlignCenter, AlignCenter, line);
+}
+
+static bool astraeon_screen_gpio_input(InputEvent* event, void* context) {
+    if(event->type != InputTypeShort || event->key != InputKeyOk) {
+        return false;
+    }
+
+    AstraeonDemo* app = context;
+    astraeon_demo_runtime_controller_validate_gpio_read(
+        &app->app.runtime,
+        app->app.platform.storage);
+    return true;
+}
+
 static const AstraeonScreenInfo astraeon_screens[] = {
     {AstraeonScreenStatus, "Status", astraeon_screen_status_draw, astraeon_screen_status_input},
-    {AstraeonScreenGpio, "GPIO", 0, 0},
+    {AstraeonScreenGpio, "GPIO", astraeon_screen_gpio_draw, astraeon_screen_gpio_input},
     {AstraeonScreenNfc, "NFC", 0, 0},
     {AstraeonScreenRfid, "RFID", 0, 0},
     {AstraeonScreenSubGhz, "SubGHz", 0, 0},
