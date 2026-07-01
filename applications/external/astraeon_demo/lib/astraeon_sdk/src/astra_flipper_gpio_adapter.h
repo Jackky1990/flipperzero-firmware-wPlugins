@@ -44,10 +44,19 @@ const AstraFlipperGPIOPinBinding* astra_flipper_gpio_adapter_pin_at(
     const AstraFlipperGPIOAdapter* adapter,
     size_t index);
 
+AstraResult astra_flipper_gpio_adapter_set_input_mode(
+    const AstraFlipperGPIOAdapter* adapter,
+    AstraFlipperGPIOPinId pin,
+    bool* out_changed);
+
 AstraResult astra_flipper_gpio_adapter_read_pin(
     const AstraFlipperGPIOAdapter* adapter,
     AstraFlipperGPIOPinId pin,
     bool* out_value);
+
+AstraResult astra_flipper_gpio_adapter_restore_if_needed(
+    const AstraFlipperGPIOAdapter* adapter,
+    AstraFlipperGPIOPinId pin);
 
 #ifdef __cplusplus
 }

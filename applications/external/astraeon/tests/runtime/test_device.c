@@ -23,6 +23,7 @@ bool astra_test_device(void) {
     AstraDeviceSubGhz subghz = {0};
     AstraFlipperGPIOAdapter gpio_adapter;
     bool gpio_value = false;
+    bool gpio_mode_changed = true;
 
     if(astra_device_init(0, "flipper").status != AstraStatusInvalidArgument) {
         return false;
@@ -110,6 +111,16 @@ bool astra_test_device(void) {
         return false;
     }
 
+    if(astra_flipper_gpio_adapter_set_input_mode(0, AstraFlipperGPIOPinPC0, &gpio_mode_changed)
+           .status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astra_flipper_gpio_adapter_set_input_mode(&gpio_adapter, AstraFlipperGPIOPinPC0, 0).status !=
+       AstraStatusInvalidArgument) {
+        return false;
+    }
+
     if(astra_flipper_gpio_adapter_read_pin(&gpio_adapter, AstraFlipperGPIOPinPC0, 0).status !=
        AstraStatusInvalidArgument) {
         return false;
@@ -123,11 +134,42 @@ bool astra_test_device(void) {
         return false;
     }
 
+    gpio_mode_changed = true;
+    if(astra_flipper_gpio_adapter_set_input_mode(
+           &gpio_adapter,
+           AstraFlipperGPIOPinCount,
+           &gpio_mode_changed)
+           .status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(gpio_mode_changed) {
+        return false;
+    }
+
     if(astra_flipper_gpio_adapter_read_pin(
            &gpio_adapter,
            AstraFlipperGPIOPinPC0,
            &gpio_value)
            .status != AstraStatusNotFound) {
+        return false;
+    }
+
+    gpio_mode_changed = true;
+    if(astra_flipper_gpio_adapter_set_input_mode(
+           &gpio_adapter,
+           AstraFlipperGPIOPinPC0,
+           &gpio_mode_changed)
+           .status != AstraStatusNotFound) {
+        return false;
+    }
+
+    if(gpio_mode_changed) {
+        return false;
+    }
+
+    if(astra_flipper_gpio_adapter_restore_if_needed(&gpio_adapter, AstraFlipperGPIOPinPC0).status !=
+       AstraStatusNotFound) {
         return false;
     }
 

@@ -110,12 +110,12 @@ const AstraFlipperGPIOPinBinding* astra_flipper_gpio_adapter_pin_at(
     return &adapter->pins[index];
 }
 
-AstraResult astra_flipper_gpio_adapter_read_pin(
+static AstraResult astra_flipper_gpio_adapter_resolve_pin(
     const AstraFlipperGPIOAdapter* adapter,
     AstraFlipperGPIOPinId pin,
-    bool* out_value) {
-    if(!adapter || !out_value) {
-        return astra_result_error(AstraStatusInvalidArgument, "flipper gpio read arguments invalid");
+    const AstraFlipperGPIOPinBinding** out_binding) {
+    if(!adapter || !out_binding) {
+        return astra_result_error(AstraStatusInvalidArgument, "flipper gpio resolve arguments invalid");
     }
 
     if(pin >= AstraFlipperGPIOPinCount) {
@@ -133,6 +133,54 @@ AstraResult astra_flipper_gpio_adapter_read_pin(
         return astra_result_error(AstraStatusNotFound, "flipper gpio binding is unavailable");
     }
 
+    *out_binding = binding;
+    return astra_result_ok();
+}
+
+AstraResult astra_flipper_gpio_adapter_set_input_mode(
+    const AstraFlipperGPIOAdapter* adapter,
+    AstraFlipperGPIOPinId pin,
+    bool* out_changed) {
+    const AstraFlipperGPIOPinBinding* binding = 0;
+    if(!out_changed) {
+        return astra_result_error(AstraStatusInvalidArgument, "flipper gpio mode result is null");
+    }
+
+    *out_changed = false;
+
+    AstraResult result = astra_flipper_gpio_adapter_resolve_pin(adapter, pin, &binding);
+    if(result.status != AstraStatusOk) {
+        return result;
+    }
+
+#if defined(ASTRA_FLIPPER_GPIO_HAS_HAL)
+    const GpioPin* flipper_pin = binding->flipper_pin;
+    if(LL_GPIO_MODE_INPUT == LL_GPIO_GetPinMode(flipper_pin->port, flipper_pin->pin)) {
+        return astra_result_ok();
+    }
+
+    furi_hal_gpio_init(flipper_pin, GpioModeInput, GpioPullNo, GpioSpeedLow);
+    *out_changed = true;
+    return astra_result_ok();
+#else
+    return astra_result_error(AstraStatusInternalError, "flipper gpio hal is unavailable");
+#endif
+}
+
+AstraResult astra_flipper_gpio_adapter_read_pin(
+    const AstraFlipperGPIOAdapter* adapter,
+    AstraFlipperGPIOPinId pin,
+    bool* out_value) {
+    const AstraFlipperGPIOPinBinding* binding = 0;
+    if(!out_value) {
+        return astra_result_error(AstraStatusInvalidArgument, "flipper gpio read value is null");
+    }
+
+    AstraResult result = astra_flipper_gpio_adapter_resolve_pin(adapter, pin, &binding);
+    if(result.status != AstraStatusOk) {
+        return result;
+    }
+
 #if defined(ASTRA_FLIPPER_GPIO_HAS_HAL)
     const GpioPin* flipper_pin = binding->flipper_pin;
     if(LL_GPIO_MODE_INPUT != LL_GPIO_GetPinMode(flipper_pin->port, flipper_pin->pin)) {
@@ -140,6 +188,25 @@ AstraResult astra_flipper_gpio_adapter_read_pin(
     }
 
     *out_value = furi_hal_gpio_read(flipper_pin);
+    return astra_result_ok();
+#else
+    return astra_result_error(AstraStatusInternalError, "flipper gpio hal is unavailable");
+#endif
+}
+
+AstraResult astra_flipper_gpio_adapter_restore_if_needed(
+    const AstraFlipperGPIOAdapter* adapter,
+    AstraFlipperGPIOPinId pin) {
+    const AstraFlipperGPIOPinBinding* binding = 0;
+
+    AstraResult result = astra_flipper_gpio_adapter_resolve_pin(adapter, pin, &binding);
+    if(result.status != AstraStatusOk) {
+        return result;
+    }
+
+#if defined(ASTRA_FLIPPER_GPIO_HAS_HAL)
+    const GpioPin* flipper_pin = binding->flipper_pin;
+    furi_hal_gpio_init(flipper_pin, GpioModeAnalog, GpioPullNo, GpioSpeedLow);
     return astra_result_ok();
 #else
     return astra_result_error(AstraStatusInternalError, "flipper gpio hal is unavailable");
