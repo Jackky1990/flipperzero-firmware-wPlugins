@@ -1,6 +1,7 @@
 #include "runtime_controller.h"
 
 #include "astra_event_builder.h"
+#include "astra_flipper_gpio_adapter.h"
 #include "astra_event_persistence.h"
 #include "astra_logger.h"
 #include "astra_node01.h"
@@ -175,6 +176,33 @@ static bool astraeon_demo_runtime_check_node01_usb(uint32_t diagnostic_runs) {
     return astra_node01_usb_bridge_send_event(&bridge, &event).status == AstraStatusOk;
 }
 
+static bool astraeon_demo_runtime_check_gpio_adapter(AstraeonRuntimeContext* runtime) {
+    AstraFlipperGPIOAdapter adapter;
+
+    if(astra_flipper_gpio_adapter_init(&adapter).status != AstraStatusOk ||
+       astra_flipper_gpio_adapter_bind_resources(&adapter).status != AstraStatusOk ||
+       astra_flipper_gpio_adapter_validate(&adapter).status != AstraStatusOk) {
+        return false;
+    }
+
+    size_t pin_count = astra_flipper_gpio_adapter_pin_count(&adapter);
+    if(pin_count != AstraFlipperGPIOPinCount) {
+        return false;
+    }
+
+    for(size_t index = 0; index < pin_count; ++index) {
+        const AstraFlipperGPIOPinBinding* binding =
+            astra_flipper_gpio_adapter_pin_at(&adapter, index);
+        if(!binding || !binding->flipper_pin) {
+            return false;
+        }
+    }
+
+    runtime->gpio_adapter_pin_count = (uint8_t)pin_count;
+    runtime->gpio_adapter_bound = true;
+    return true;
+}
+
 void astraeon_demo_runtime_controller_start(
     AstraeonRuntimeContext* runtime,
     Storage* furi_storage) {
@@ -216,6 +244,7 @@ void astraeon_demo_runtime_controller_start(
     runtime->node01_ok =
         runtime->transport_ready && astraeon_demo_runtime_check_node01(&transport, diagnostic_runs);
     runtime->node01_usb_ok = astraeon_demo_runtime_check_node01_usb(diagnostic_runs);
+    runtime->gpio_adapter_ok = astraeon_demo_runtime_check_gpio_adapter(runtime);
 
     runtime->ping_ok =
         runtime->transport_ready &&

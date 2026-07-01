@@ -31,8 +31,9 @@ static void astraeon_screen_status_draw(Canvas* canvas, void* context) {
     snprintf(
         line,
         sizeof(line),
-        "Ping: %s",
-        runtime->ping_ok ? "PASS" : "WAIT");
+        "Ping:%s GPIO:%s",
+        runtime->ping_ok ? "PASS" : "WAIT",
+        runtime->gpio_adapter_bound ? "BIND" : "WAIT");
     canvas_draw_str_aligned(canvas, 64, 61, AlignCenter, AlignCenter, line);
 }
 

@@ -26,12 +26,14 @@ App(
     fap_private_libs=[
         Lib(
             name="astraeon_sdk",
-            fap_include_paths=["include"],
+            fap_include_paths=["include", "src"],
             cdefines=ASTRAEON_DEMO_CDEFINES,
             sources=[
                 "src/astra_status.c",
                 "src/astra_result.c",
                 "src/astra_types.c",
+                "src/astra_device_gpio.c",
+                "src/astra_flipper_gpio_adapter.c",
                 "src/astra_event.c",
                 "src/astra_event_types.c",
                 "src/astra_event_builder.c",
