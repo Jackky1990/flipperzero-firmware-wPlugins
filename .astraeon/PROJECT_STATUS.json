@@ -1,8 +1,10 @@
 {
   "project": "ASTRAEON-X",
   "orchestrator": "AEO",
-  "phase": "R6 Release Framework Refactor",
+  "phase": "R6R-3",
+  "status": "COMPLETED",
   "health": "GREEN",
+  "next_task": "R6R-4 Manifest Layer",
   "source_of_truth": "git",
   "roles": {
     "architect": "ChatGPT",
