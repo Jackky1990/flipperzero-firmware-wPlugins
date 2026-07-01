@@ -59,3 +59,6 @@ The unified CI helper can combine both paths:
 ```sh
 python3 applications/external/astraeon/tools/codex/astraeon_ci.py --build-demo
 ```
+
+For connected-device validation, follow
+`applications/external/astraeon/docs/HARDWARE_VALIDATION.md`.
