@@ -2,8 +2,16 @@
 
 import subprocess
 import sys
+from pathlib import Path
 
 from release.artifact import RELEASE_ARTIFACTS, missing_artifacts
+from release.github import publish_github_release
+from release.manifest import build_manifest, write_manifest
+from release.notes import write_release_notes
+
+
+def release_output_dir(tag):
+    return Path("build") / "astraeon-release" / tag
 
 
 def run(cmd):
@@ -23,8 +31,6 @@ def run_release(args):
 
     if args.dev:
         ci_cmd.extend([
-            "--expect",
-            "applications/external/astraeon/tools/codex/release.py",
             "--allow",
             "applications/external/astraeon/tools/codex/release",
         ])
@@ -44,8 +50,15 @@ def run_release(args):
     for artifact in RELEASE_ARTIFACTS:
         print(f"  {artifact.name}: {artifact.path}")
 
-    if args.dry_run:
-        print("[ASTRAEON RELEASE] dry run complete")
-        return
+    manifest = build_manifest(args.tag)
+    output_dir = release_output_dir(args.tag)
+    manifest_path = write_manifest(manifest, output_dir / "manifest.json")
+    notes_path = write_release_notes(manifest, output_dir / "release_notes.md")
 
-    print("[ASTRAEON RELEASE] GitHub release creation not enabled yet")
+    publish_github_release(
+        args.tag,
+        manifest,
+        notes_path,
+        manifest_path,
+        dry_run=args.dry_run,
+    )
