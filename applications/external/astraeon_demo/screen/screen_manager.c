@@ -11,42 +11,29 @@ static void astraeon_screen_status_draw(Canvas* canvas, void* context) {
 
     char line[32];
 
-    snprintf(
-        line,
-        sizeof(line),
-        "Run:%s Xport:%s",
-        runtime->ready ? "OK" : "--",
-        runtime->transport_ready ? "OK" : "--");
-    canvas_draw_str(canvas, 2, 28, line);
+    canvas_set_font(canvas, FontSecondary);
+    canvas_draw_str_aligned(canvas, 64, 25, AlignCenter, AlignCenter, "Runtime Demo");
 
     snprintf(
         line,
         sizeof(line),
-        "Proto:P%u %s",
-        runtime->protocol_version,
-        runtime->supports_packets ? "PKT" : "RAW");
-    canvas_draw_str(canvas, 2, 37, line);
+        "Runtime: %s",
+        runtime->ready ? "READY" : "IDLE");
+    canvas_draw_str_aligned(canvas, 64, 37, AlignCenter, AlignCenter, line);
 
     snprintf(
         line,
         sizeof(line),
-        "Cap:%s HS:%s Ping:%s",
-        runtime->capabilities_ok ? "OK" : "--",
-        runtime->handshake_ok ? "OK" : "--",
-        runtime->ping_ok ? "OK" : "--");
-    canvas_draw_str(canvas, 2, 46, line);
+        "Transport: %s",
+        runtime->transport_ready ? "LOOPBACK" : "WAIT");
+    canvas_draw_str_aligned(canvas, 64, 49, AlignCenter, AlignCenter, line);
 
     snprintf(
         line,
         sizeof(line),
-        "S%s L%s E%s N%s U%s P%s",
-        runtime->storage_ok ? "+" : "-",
-        runtime->logger_ok ? "+" : "-",
-        runtime->event_persistence_ok ? "+" : "-",
-        runtime->node01_ok ? "+" : "-",
-        runtime->node01_usb_ok ? "+" : "-",
-        runtime->policy_ok ? "+" : "-");
-    canvas_draw_str(canvas, 2, 55, line);
+        "Ping: %s",
+        runtime->ping_ok ? "PASS" : "WAIT");
+    canvas_draw_str_aligned(canvas, 64, 61, AlignCenter, AlignCenter, line);
 }
 
 static bool astraeon_screen_status_input(InputEvent* event, void* context) {
