@@ -5,7 +5,17 @@
       "astra_types",
       "astra_result",
       "astra_version",
-      "astra_build_info"
+      "astra_build_info",
+      "astra_device_capabilities",
+      "astra_device",
+      "astra_device_gpio",
+      "astra_device_usb",
+      "astra_device_serial",
+      "astra_device_ble",
+      "astra_device_nfc",
+      "astra_device_rfid",
+      "astra_device_ir",
+      "astra_device_subghz"
     ],
     "runtime": [
       "astra_clock",

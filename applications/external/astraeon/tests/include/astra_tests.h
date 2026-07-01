@@ -34,4 +34,5 @@ bool astra_test_logger(void);
 bool astra_test_event_persistence(void);
 bool astra_test_node01(void);
 bool astra_test_node01_usb_bridge(void);
+bool astra_test_device(void);
 bool astra_test_run_all(void);
