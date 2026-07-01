@@ -34,6 +34,8 @@ typedef struct {
 
 AstraResult astra_flipper_gpio_adapter_init(AstraFlipperGPIOAdapter* adapter);
 
+AstraResult astra_flipper_gpio_adapter_bind_resources(AstraFlipperGPIOAdapter* adapter);
+
 AstraResult astra_flipper_gpio_adapter_validate(const AstraFlipperGPIOAdapter* adapter);
 
 size_t astra_flipper_gpio_adapter_pin_count(const AstraFlipperGPIOAdapter* adapter);

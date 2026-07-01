@@ -80,6 +80,10 @@ bool astra_test_device(void) {
         return false;
     }
 
+    if(astra_flipper_gpio_adapter_bind_resources(0).status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
     if(astra_flipper_gpio_adapter_init(&gpio_adapter).status != AstraStatusOk) {
         return false;
     }

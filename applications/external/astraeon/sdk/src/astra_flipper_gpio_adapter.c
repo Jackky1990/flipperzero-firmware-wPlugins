@@ -1,5 +1,12 @@
 #include "astra_flipper_gpio_adapter.h"
 
+#if defined(__has_include)
+#if __has_include(<furi_hal_resources.h>)
+#define ASTRA_FLIPPER_GPIO_HAS_RESOURCES 1
+#include <furi_hal_resources.h>
+#endif
+#endif
+
 static AstraDeviceGPIOPin astra_flipper_gpio_contract(uint8_t pin) {
     AstraDeviceGPIOPin contract = {
         .pin = pin,
@@ -23,6 +30,38 @@ AstraResult astra_flipper_gpio_adapter_init(AstraFlipperGPIOAdapter* adapter) {
     }
 
     return astra_result_ok();
+}
+
+AstraResult astra_flipper_gpio_adapter_bind_resources(AstraFlipperGPIOAdapter* adapter) {
+    if(!adapter) {
+        return astra_result_error(AstraStatusInvalidArgument, "flipper gpio adapter is null");
+    }
+
+    AstraResult result = astra_flipper_gpio_adapter_validate(adapter);
+    if(result.status != AstraStatusOk) {
+        return result;
+    }
+
+#if defined(ASTRA_FLIPPER_GPIO_HAS_RESOURCES)
+    static const void* const flipper_gpio_resources[AstraFlipperGPIOPinCount] = {
+        &gpio_ext_pc0,
+        &gpio_ext_pc1,
+        &gpio_ext_pc3,
+        &gpio_ext_pb2,
+        &gpio_ext_pb3,
+        &gpio_ext_pa4,
+        &gpio_ext_pa6,
+        &gpio_ext_pa7,
+    };
+
+    for(size_t index = 0; index < adapter->pin_count; ++index) {
+        adapter->pins[index].flipper_pin = flipper_gpio_resources[index];
+    }
+
+    return astra_result_ok();
+#else
+    return astra_result_error(AstraStatusInternalError, "flipper gpio resources are unavailable");
+#endif
 }
 
 AstraResult astra_flipper_gpio_adapter_validate(const AstraFlipperGPIOAdapter* adapter) {
