@@ -1,6 +1,6 @@
 # Next Action
 
-R6R-3 is complete. The release framework now routes through `pipeline.py`, while `release.py` remains a thin orchestration entry point.
+R6R-4 is complete. The release output layer now has manifest helpers and release notes helpers while preserving current release pipeline behavior.
 
 ## Architecture Status
 
@@ -9,16 +9,16 @@ Approved. The current release flow is:
 - `release.py`
 - `release/pipeline.py`
 - `release/artifact.py`
-- `release/manifest.py` (next)
-- `release/notes.py` (future)
+- `release/manifest.py`
+- `release/notes.py`
 - `release/github.py` (future)
 
 ## Remaining Work
 
-- Implement the R6R-4 Manifest Layer.
-- Keep manifest generation isolated in `release/manifest.py`.
-- Preserve current release behavior until the Architect approves the next integration step.
+- Implement R6R-4a Verification Profile Layer.
+- Move verification scopes out of hardcoded release dev flow and task prompts.
+- Keep backward compatibility for existing `--expect` and `--allow` CI usage.
 
 ## Next Implementation Step
 
-Implement manifest helpers for release artifact metadata without adding release notes or GitHub release behavior.
+Create data-driven verification profiles without changing firmware, runtime, SDK, demo runtime, build system, or release output helpers.
