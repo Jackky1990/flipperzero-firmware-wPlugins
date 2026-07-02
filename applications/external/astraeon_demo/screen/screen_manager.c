@@ -119,9 +119,91 @@ static bool astraeon_screen_gpio_input(InputEvent* event, void* context) {
     return true;
 }
 
+static void astraeon_screen_uart_draw(Canvas* canvas, void* context) {
+    AstraeonDemo* app = context;
+    AstraeonRuntimeContext* runtime = &app->app.runtime;
+    char line[32];
+
+    canvas_set_font(canvas, FontSecondary);
+    canvas_draw_str_aligned(canvas, 64, 12, AlignCenter, AlignCenter, "UART TX");
+
+    snprintf(
+        line,
+        sizeof(line),
+        "Session:%s",
+        runtime->uart_checked ? (runtime->uart_ok ? "OK" : "SAFE") : "WAIT");
+    canvas_draw_str_aligned(canvas, 64, 25, AlignCenter, AlignCenter, line);
+
+    snprintf(
+        line,
+        sizeof(line),
+        "TX:%s %lu",
+        runtime->uart_tx_checked ? (runtime->uart_tx_ok ? "OK" : "SAFE") : "WAIT",
+        (unsigned long)runtime->uart_tx_bytes_written);
+    canvas_draw_str_aligned(canvas, 64, 38, AlignCenter, AlignCenter, line);
+
+    snprintf(
+        line,
+        sizeof(line),
+        "Release:%u",
+        (unsigned)runtime->uart_release_count);
+    canvas_draw_str_aligned(canvas, 64, 51, AlignCenter, AlignCenter, line);
+
+    canvas_draw_str_aligned(canvas, 64, 63, AlignCenter, AlignCenter, "OK to TX");
+}
+
+static bool astraeon_screen_uart_input(InputEvent* event, void* context) {
+    if(event->type != InputTypeShort || event->key != InputKeyOk) {
+        return false;
+    }
+
+    static const uint8_t payload[] = "ASTRAEON UART TEST 001";
+
+    AstraeonDemo* app = context;
+    AstraFlipperSerialAdapter adapter;
+    AstraDeviceSerialConfig config = {
+        .channel = AstraDeviceSerialChannelPrimary,
+        .baud_rate = 115200,
+        .data_bits = 8,
+        .parity = AstraDeviceSerialParityNone,
+        .stop_bits = AstraDeviceSerialStopBits1,
+        .flow_control = AstraDeviceSerialFlowControlNone,
+        .rx_buffer_size = 256,
+        .tx_buffer_size = 256,
+        .timeout_ms = 100,
+    };
+
+    AstraStatus status = astraeon_demo_runtime_controller_open_uart(
+        &app->app.runtime,
+        &adapter,
+        app->app.platform.storage,
+        &config);
+
+    if(status == AstraStatusOk) {
+        size_t written = 0;
+        astraeon_demo_runtime_controller_uart_tx(
+            &app->app.runtime,
+            &adapter,
+            app->app.platform.storage,
+            payload,
+            sizeof(payload) - 1,
+            &written);
+    }
+
+    if(app->app.runtime.uart_session_active) {
+        astraeon_demo_runtime_controller_close_uart(
+            &app->app.runtime,
+            &adapter,
+            app->app.platform.storage);
+    }
+
+    return true;
+}
+
 static const AstraeonScreenInfo astraeon_screens[] = {
     {AstraeonScreenStatus, "Status", astraeon_screen_status_draw, astraeon_screen_status_input},
     {AstraeonScreenGpio, "GPIO", astraeon_screen_gpio_draw, astraeon_screen_gpio_input},
+    {AstraeonScreenUart, "UART", astraeon_screen_uart_draw, astraeon_screen_uart_input},
     {AstraeonScreenNfc, "NFC", 0, 0},
     {AstraeonScreenRfid, "RFID", 0, 0},
     {AstraeonScreenSubGhz, "SubGHz", 0, 0},

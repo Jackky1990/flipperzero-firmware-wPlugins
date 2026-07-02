@@ -13,6 +13,7 @@ extern "C" {
 typedef enum {
     AstraeonScreenStatus = 0,
     AstraeonScreenGpio,
+    AstraeonScreenUart,
     AstraeonScreenNfc,
     AstraeonScreenRfid,
     AstraeonScreenSubGhz,

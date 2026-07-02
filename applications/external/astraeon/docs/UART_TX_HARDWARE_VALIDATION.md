@@ -81,7 +81,11 @@ payload itself must match exactly.
    screen /dev/cu.usbserial-XXXX 115200
    ```
 
-4. Trigger the approved UART TX validation path.
+4. Trigger the approved UART TX validation path:
+
+   - Launch `ASTRAEON Demo`.
+   - Press `Down` until the `UART TX` screen is visible.
+   - Press `OK` once.
 
 5. Confirm the controller sequence:
 
@@ -209,4 +213,3 @@ The validation passes only if all of the following are true:
 - Release is executed exactly once.
 - Adapter state is not busy after release.
 - Logs and persistent events contain matching UART TX evidence.
-

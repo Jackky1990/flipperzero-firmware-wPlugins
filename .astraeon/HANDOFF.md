@@ -2,7 +2,7 @@
 
 ## Current State
 
-R8E-3 UART TX Hardware Validation Package is complete and verified.
+R8E-4A UART Validation Trigger is complete and verified.
 
 ## Completed
 
@@ -33,6 +33,10 @@ R8E-3 UART TX Hardware Validation Package is complete and verified.
 - Documented payload `ASTRAEON UART TEST 001` and expected accepted byte count `22`.
 - Documented expected terminal output, runtime diagnostics, storage evidence, failure matrix, recovery steps, and validation report template.
 - Linked the UART TX validation guide from the general hardware validation checklist.
+- Added a minimal `UART TX` demo screen.
+- Wired the screen `OK` action to the existing controller-owned UART open -> TX -> close sequence.
+- Reused payload `ASTRAEON UART TEST 001`.
+- Updated the hardware validation guide with the concrete demo trigger path.
 
 ## Verification
 
@@ -57,12 +61,12 @@ R8E-3 UART TX Hardware Validation Package is complete and verified.
 - No worker threads.
 - No stream buffers.
 - No polling.
-- No demo UI integration.
+- Minimal demo UI trigger only for UART TX validation.
 - No USB CDC changes.
 - No expansion service changes.
 - No firmware-core changes.
-- No hardware validation execution was performed in this documentation package phase.
+- No hardware validation execution was performed in this trigger phase.
 
 ## Next Task
 
-Execute R8E-4 UART TX Hardware Validation after Architect approval and with known-good USB-UART hardware connected.
+Execute R8E-4 UART TX Hardware Validation with known-good USB-UART hardware connected.
