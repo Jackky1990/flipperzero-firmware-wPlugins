@@ -1,6 +1,6 @@
 # Next Action
 
-R7D-5C is blocked. Controlled GPIO write hardware validation must not continue until reliable validation hardware is available. The legacy board is damaged and must not be used for GPIO write validation.
+R8B is complete. ASTRAEON UART Contract Foundation now defines platform-independent UART config, status, diagnostics, and session validation without Flipper HAL calls, DMA, IRQ callbacks, hardware read/write, USB CDC changes, or firmware-core changes.
 
 ## Architecture Status
 
@@ -26,6 +26,12 @@ Approved. The current device HAL flow is:
 - No GPIO write during screen rendering
 - No background GPIO write or polling
 - No NFC, RFID, IR, SubGHz, BLE, USB, or Serial adapter work in this phase
+- UART contract foundation for Embedded SDK v1:
+  - `AstraDeviceSerialConfig`
+  - `AstraDeviceSerialStatus`
+  - `AstraDeviceSerialDiagnostics`
+  - `AstraDeviceSerialSession`
+  - validation only; no hardware behavior
 
 ## Blocker
 
@@ -37,7 +43,9 @@ Approved. The current device HAL flow is:
 - Prepare ASTRAEON Hardware Validation Board plan.
 - Define safe PC0 validation hardware before resuming controlled GPIO write validation.
 - Keep PC0 as the only validation target unless Architect changes the pin policy.
+- Implement R8C Thin Flipper UART Adapter Skeleton after Architect approval.
+- Keep R8C side-effect free unless explicitly approved.
 
 ## Next Implementation Step
 
-Prepare ASTRAEON Hardware Validation Board plan for Architect review. Do not modify firmware code, expand pin selection, add polling, or add interrupts without explicit approval.
+Prepare R8C Thin Flipper UART Adapter Skeleton for Architect review. Do not add UART DMA, IRQ callbacks, hardware read/write, USB CDC changes, expansion service changes, polling, or firmware-core changes without explicit approval.

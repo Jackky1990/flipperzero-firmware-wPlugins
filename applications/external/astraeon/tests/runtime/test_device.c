@@ -22,6 +22,10 @@ bool astra_test_device(void) {
     AstraDeviceRFID rfid = {0};
     AstraDeviceIR ir = {0};
     AstraDeviceSubGhz subghz = {0};
+    AstraDeviceSerialConfig serial_config = {0};
+    AstraDeviceSerialStatus serial_status = {0};
+    AstraDeviceSerialDiagnostics serial_diagnostics = {0};
+    AstraDeviceSerialSession serial_session = {0};
     AstraFlipperGPIOAdapter gpio_adapter;
     AstraeonRuntimeContext gpio_write_runtime = {0};
     bool gpio_value = false;
@@ -72,6 +76,22 @@ bool astra_test_device(void) {
     usb.max_packet_size = 64;
 
     serial.baud_rate = 115200;
+    serial_config.channel = AstraDeviceSerialChannelPrimary;
+    serial_config.baud_rate = 115200;
+    serial_config.data_bits = 8;
+    serial_config.parity = AstraDeviceSerialParityNone;
+    serial_config.stop_bits = AstraDeviceSerialStopBits1;
+    serial_config.flow_control = AstraDeviceSerialFlowControlNone;
+    serial_config.rx_buffer_size = 256;
+    serial_config.tx_buffer_size = 256;
+    serial_config.timeout_ms = 100;
+    serial_status.open = true;
+    serial_status.last_status = AstraStatusOk;
+    serial_session.session_id = 1;
+    serial_session.active = true;
+    serial_session.config = serial_config;
+    serial_session.status = serial_status;
+    serial_session.diagnostics = serial_diagnostics;
     ble.advertising = true;
     nfc.supports_poller = true;
     rfid.supports_read = true;
@@ -233,6 +253,76 @@ bool astra_test_device(void) {
         return false;
     }
 
+    if(astra_device_serial_validate(0).status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    serial.baud_rate = 0;
+    if(astra_device_serial_validate(&serial).status != AstraStatusInvalidArgument) {
+        return false;
+    }
+    serial.baud_rate = 115200;
+
+    if(astra_device_serial_config_validate(0).status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    serial_config.baud_rate = ASTRA_DEVICE_SERIAL_MIN_BAUD_RATE - 1u;
+    if(astra_device_serial_config_validate(&serial_config).status !=
+       AstraStatusInvalidArgument) {
+        return false;
+    }
+    serial_config.baud_rate = 115200;
+
+    serial_config.channel = AstraDeviceSerialChannelCount;
+    if(astra_device_serial_config_validate(&serial_config).status !=
+       AstraStatusInvalidArgument) {
+        return false;
+    }
+    serial_config.channel = AstraDeviceSerialChannelPrimary;
+
+    serial_config.data_bits = 9;
+    if(astra_device_serial_config_validate(&serial_config).status !=
+       AstraStatusInvalidArgument) {
+        return false;
+    }
+    serial_config.data_bits = 8;
+
+    serial_config.rx_buffer_size = 0;
+    if(astra_device_serial_config_validate(&serial_config).status !=
+       AstraStatusInvalidArgument) {
+        return false;
+    }
+    serial_config.rx_buffer_size = 256;
+
+    if(astra_device_serial_status_validate(0).status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    serial_status.open = false;
+    serial_status.busy = true;
+    if(astra_device_serial_status_validate(&serial_status).status !=
+       AstraStatusInvalidArgument) {
+        return false;
+    }
+    serial_status.open = true;
+    serial_status.busy = false;
+
+    if(astra_device_serial_diagnostics_validate(0).status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astra_device_serial_session_validate(0).status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    serial_session.session_id = 0;
+    if(astra_device_serial_session_validate(&serial_session).status !=
+       AstraStatusInvalidArgument) {
+        return false;
+    }
+    serial_session.session_id = 1;
+
     if(astraeon_runtime_gpio_write_request_confirmation(&gpio_write_runtime) != AstraStatusOk) {
         return false;
     }
@@ -298,6 +388,10 @@ bool astra_test_device(void) {
 
     return astra_device_usb_validate(&usb).status == AstraStatusOk &&
            astra_device_serial_validate(&serial).status == AstraStatusOk &&
+           astra_device_serial_config_validate(&serial_config).status == AstraStatusOk &&
+           astra_device_serial_status_validate(&serial_status).status == AstraStatusOk &&
+           astra_device_serial_diagnostics_validate(&serial_diagnostics).status == AstraStatusOk &&
+           astra_device_serial_session_validate(&serial_session).status == AstraStatusOk &&
            astra_device_ble_status_validate(&ble).status == AstraStatusOk &&
            astra_device_nfc_validate(&nfc).status == AstraStatusOk &&
            astra_device_rfid_validate(&rfid).status == AstraStatusOk &&
