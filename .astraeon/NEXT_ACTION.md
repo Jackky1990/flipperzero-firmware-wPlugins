@@ -1,6 +1,9 @@
 # Next Action
 
-Embedded SDK v1.0 RC1 milestone is prepared. The current software architecture is frozen as a release-candidate milestone in `applications/external/astraeon/docs/EMBEDDED_SDK_V1_RC1_MILESTONE.md` without firmware behavior changes.
+Master Ecosystem Architecture is documented. The ASTRAEON long-term vision,
+domains, kernel architecture, hardware lab, probe architecture, engineering
+principles, and master roadmap are now recorded under `.astraeon/` without
+firmware, SDK, runtime, or build-system behavior changes.
 
 ## Architecture Status
 
@@ -138,14 +141,20 @@ Approved. The current device HAL flow is:
 
 ## Remaining Work
 
+- Use `.astraeon/MASTER_CHARTER.md`, `.astraeon/ECOSYSTEM_ARCHITECTURE.md`,
+  `.astraeon/ENGINEERING_PRINCIPLES.md`, `.astraeon/ROADMAP_MASTER.md`, and
+  `.astraeon/DOMAINS.md` as architecture source-of-truth for future ASTRAEON
+  ecosystem work.
 - Prepare ASTRAEON Hardware Validation Board plan.
 - Define safe PC0 validation hardware before resuming controlled GPIO write validation.
 - Keep PC0 as the only validation target unless Architect changes the pin policy.
 - Execute R8E-4 UART TX Hardware Validation with known-good USB-UART hardware connected.
 - Prepare R8F-4 UART RX Hardware Validation Plan after Architect approval.
+- Start ASTRAEON-Hardware P0 Documentation after Architect approval if the
+  hardware lab work moves into a separate repository.
 - Complete Embedded SDK v1.0 Release after hardware validation evidence is accepted or explicitly deferred by Architect.
 - Keep R8E separated from RX, DMA, IRQ/callbacks, worker threads, stream buffers, USB CDC changes, expansion service changes, and firmware-core changes unless explicitly approved.
 
 ## Next Implementation Step
 
-Prepare R8F-4 UART RX Hardware Validation Plan after Architect approval. The safe boundary is planning or validation packaging only unless explicitly expanded: no new RX features, no DMA, no worker thread, no stream buffer, no USB CDC changes, no expansion service changes, no firmware-core changes, and no hardware validation execution until required hardware and trigger path are approved.
+Next safe implementation depends on Architect priority: prepare ASTRAEON-Hardware P0 Documentation in a separate project, or prepare R8F-4 UART RX Hardware Validation Plan in this repository. Do not mix Probe firmware into RogueMaster.

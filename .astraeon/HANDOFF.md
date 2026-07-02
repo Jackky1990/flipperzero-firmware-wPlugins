@@ -2,7 +2,8 @@
 
 ## Current State
 
-Embedded SDK v1.0 RC1 milestone is prepared.
+Master Ecosystem Architecture is documented and Embedded SDK v1.0 RC1 remains
+prepared.
 
 ## Completed
 
@@ -70,6 +71,14 @@ Embedded SDK v1.0 RC1 milestone is prepared.
   Persistence, CI, and Auto Release.
 - Captured completed features, blocked hardware validations, remaining roadmap,
   and release readiness gates.
+- Added ASTRAEON Master Charter.
+- Added ASTRAEON Ecosystem Architecture.
+- Added ASTRAEON Engineering Principles.
+- Added ASTRAEON Master Roadmap.
+- Added ASTRAEON Domains.
+- Documented the long-term ecosystem boundary: Flipper is the first reference
+  target, Probe remains a separate project, and ASTRAEON is not a single
+  firmware or app.
 
 ## Verification
 
@@ -106,4 +115,5 @@ Embedded SDK v1.0 RC1 milestone is prepared.
 
 ## Next Task
 
-Prepare R8F-4 UART RX Hardware Validation Plan after Architect approval.
+Prepare ASTRAEON-Hardware P0 Documentation in a separate project or prepare
+R8F-4 UART RX Hardware Validation Plan after Architect approval.
