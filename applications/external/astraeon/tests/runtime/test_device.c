@@ -34,6 +34,8 @@ bool astra_test_device(void) {
     bool gpio_value = false;
     bool gpio_mode_changed = true;
     bool serial_busy = true;
+    const uint8_t serial_tx_payload[] = {0x41, 0x53, 0x54, 0x52, 0x41};
+    size_t serial_written = 99;
 
     if(astra_device_init(0, "flipper").status != AstraStatusInvalidArgument) {
         return false;
@@ -413,6 +415,76 @@ bool astra_test_device(void) {
         return false;
     }
 
+    serial_written = 99;
+    if(astra_flipper_serial_adapter_write(
+           0,
+           AstraFlipperSerialChannelPrimary,
+           serial_tx_payload,
+           sizeof(serial_tx_payload),
+           &serial_written)
+           .status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(serial_written != 0) {
+        return false;
+    }
+
+    serial_written = 99;
+    if(astra_flipper_serial_adapter_write(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           0,
+           sizeof(serial_tx_payload),
+           &serial_written)
+           .status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(serial_written != 0) {
+        return false;
+    }
+
+    if(astra_flipper_serial_adapter_write(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           serial_tx_payload,
+           sizeof(serial_tx_payload),
+           0)
+           .status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    serial_written = 99;
+    if(astra_flipper_serial_adapter_write(
+           &serial_adapter,
+           AstraFlipperSerialChannelCount,
+           serial_tx_payload,
+           sizeof(serial_tx_payload),
+           &serial_written)
+           .status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(serial_written != 0) {
+        return false;
+    }
+
+    serial_written = 99;
+    if(astra_flipper_serial_adapter_write(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           serial_tx_payload,
+           sizeof(serial_tx_payload),
+           &serial_written)
+           .status != AstraStatusPermissionDenied) {
+        return false;
+    }
+
+    if(serial_written != 0) {
+        return false;
+    }
+
     if(astraeon_runtime_uart_open_begin(0, &serial_config) != AstraStatusInvalidArgument) {
         return false;
     }
@@ -511,6 +583,48 @@ bool astra_test_device(void) {
        !uart_runtime.uart_released ||
        uart_runtime.uart_release_count != 1 ||
        uart_runtime.uart_state != AstraeonUARTSessionStateError) {
+        return false;
+    }
+
+    if(astra_flipper_serial_adapter_acquire(&serial_adapter, &serial_config).status !=
+       AstraStatusOk) {
+        return false;
+    }
+
+    serial_written = 99;
+    if(astra_flipper_serial_adapter_write(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           serial_tx_payload,
+           0,
+           &serial_written)
+           .status != AstraStatusOk) {
+        return false;
+    }
+
+    if(serial_written != 0) {
+        return false;
+    }
+
+    serial_written = 0;
+    if(astra_flipper_serial_adapter_write(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           serial_tx_payload,
+           sizeof(serial_tx_payload),
+           &serial_written)
+           .status != AstraStatusOk) {
+        return false;
+    }
+
+    if(serial_written != sizeof(serial_tx_payload)) {
+        return false;
+    }
+
+    if(astra_flipper_serial_adapter_release(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary)
+           .status != AstraStatusOk) {
         return false;
     }
 

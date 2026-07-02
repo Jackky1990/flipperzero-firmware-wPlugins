@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #include "astra_device_serial.h"
 #include "astra_result.h"
@@ -52,6 +53,13 @@ AstraResult astra_flipper_serial_adapter_is_busy(
     const AstraFlipperSerialAdapter* adapter,
     AstraFlipperSerialChannelId channel,
     bool* out_busy);
+
+AstraResult astra_flipper_serial_adapter_write(
+    AstraFlipperSerialAdapter* adapter,
+    AstraFlipperSerialChannelId channel,
+    const uint8_t* data,
+    size_t length,
+    size_t* out_written);
 
 #ifdef __cplusplus
 }

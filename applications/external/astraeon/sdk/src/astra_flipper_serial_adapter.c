@@ -3,6 +3,7 @@
 #if defined(__has_include)
 #if __has_include(<furi_hal_serial_control.h>) && __has_include(<furi_hal_serial_types.h>)
 #define ASTRA_FLIPPER_SERIAL_HAS_CONTROL 1
+#include <furi_hal_serial.h>
 #include <furi_hal_serial_control.h>
 #include <furi_hal_serial_types.h>
 #endif
@@ -238,7 +239,8 @@ AstraResult astra_flipper_serial_adapter_release(
     AstraFlipperSerialAdapter* adapter,
     AstraFlipperSerialChannelId channel) {
     AstraFlipperSerialChannelBinding* binding = 0;
-    AstraResult result = astra_flipper_serial_adapter_resolve_channel_mut(adapter, channel, &binding);
+    AstraResult result =
+        astra_flipper_serial_adapter_resolve_channel_mut(adapter, channel, &binding);
     if(result.status != AstraStatusOk) {
         return result;
     }
@@ -282,5 +284,45 @@ AstraResult astra_flipper_serial_adapter_is_busy(
     }
 #endif
 
+    return astra_result_ok();
+}
+
+AstraResult astra_flipper_serial_adapter_write(
+    AstraFlipperSerialAdapter* adapter,
+    AstraFlipperSerialChannelId channel,
+    const uint8_t* data,
+    size_t length,
+    size_t* out_written) {
+    if(!out_written) {
+        return astra_result_error(AstraStatusInvalidArgument, "flipper serial write result is null");
+    }
+
+    *out_written = 0;
+
+    if(length > 0 && !data) {
+        return astra_result_error(AstraStatusInvalidArgument, "flipper serial write data is null");
+    }
+
+    AstraFlipperSerialChannelBinding* binding = 0;
+    AstraResult result = astra_flipper_serial_adapter_resolve_channel_mut(adapter, channel, &binding);
+    if(result.status != AstraStatusOk) {
+        return result;
+    }
+
+    if(!binding->acquired || !binding->flipper_handle) {
+        return astra_result_error(
+            AstraStatusPermissionDenied,
+            "flipper serial channel is not acquired");
+    }
+
+    if(length == 0) {
+        return astra_result_ok();
+    }
+
+#if defined(ASTRA_FLIPPER_SERIAL_HAS_CONTROL)
+    furi_hal_serial_tx(binding->flipper_handle, data, length);
+#endif
+
+    *out_written = length;
     return astra_result_ok();
 }

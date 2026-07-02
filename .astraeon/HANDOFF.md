@@ -2,17 +2,18 @@
 
 ## Current State
 
-R8D UART Controller Session Lifecycle is complete and verified.
+R8E-1 UART TX Adapter Primitive is complete and verified.
 
 ## Completed
 
-- Runtime UART session state fields.
-- Controller-owned UART open, close, cancel, and timeout paths.
-- Config validation before acquire.
-- Duplicate session rejection.
-- Acquire/release lifecycle through the thin R8C adapter.
-- Best-effort diagnostics log/event recording.
-- Host/runtime lifecycle and failure-policy tests.
+- Added `astra_flipper_serial_adapter_write`.
+- Kept the adapter thin: no logging, persistence, runtime events, retries, or policy logic.
+- Required an acquired serial channel before write.
+- Validated adapter, channel, data, length, and `out_written`.
+- Supported zero-length writes safely.
+- Accounted accepted write length through `out_written`.
+- Mirrored the adapter primitive into the demo SDK copy to preserve SDK drift checks.
+- Added host/runtime tests for invalid arguments, invalid channel, write-before-acquire, zero-length write, and bounded write accounting.
 
 ## Verification
 
@@ -28,7 +29,9 @@ R8D UART Controller Session Lifecycle is complete and verified.
 
 ## Constraints Preserved
 
-- No UART TX/RX.
+- TX adapter primitive only.
+- No controller TX workflow.
+- No RX.
 - No `furi_hal_serial_init`.
 - No `furi_hal_serial_deinit`.
 - No DMA.
@@ -43,4 +46,4 @@ R8D UART Controller Session Lifecycle is complete and verified.
 
 ## Next Task
 
-Prepare R8E UART Read/Write Implementation Plan after Architect approval.
+Implement R8E-2 UART Controller TX Workflow after Architect approval.
