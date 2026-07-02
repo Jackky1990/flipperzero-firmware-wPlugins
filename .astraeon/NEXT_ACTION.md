@@ -1,9 +1,8 @@
 # Next Action
 
-Master Ecosystem Architecture is documented. The ASTRAEON long-term vision,
-domains, kernel architecture, hardware lab, probe architecture, engineering
-principles, and master roadmap are now recorded under `.astraeon/` without
-firmware, SDK, runtime, or build-system behavior changes.
+ASTRAEON Universe Blueprint v1.0 is documented. The ASTRAEON long-term
+ecosystem is now defined as a Physical Intelligence Platform with ASTRAEON-X as
+the preserved core platform.
 
 ## Architecture Status
 
@@ -141,6 +140,13 @@ Approved. The current device HAL flow is:
 
 ## Remaining Work
 
+- Review `.astraeon/UNIVERSE_BLUEPRINT.md` as the master blueprint for future
+  ASTRAEON work.
+- Use `.astraeon/DOMAIN_MAP.md`, `.astraeon/SERVICE_MAP.md`,
+  `.astraeon/API_MAP.md`, `.astraeon/EVENT_MAP.md`, `.astraeon/DATA_MAP.md`,
+  `.astraeon/PORTAL_MAP.md`, `.astraeon/INTEGRATION_RULES.md`,
+  `.astraeon/MATURITY_MODEL.md`, and `.astraeon/PROJECT_REGISTRY.md` before
+  adding new domains, services, APIs, or repositories.
 - Use `.astraeon/MASTER_CHARTER.md`, `.astraeon/ECOSYSTEM_ARCHITECTURE.md`,
   `.astraeon/ENGINEERING_PRINCIPLES.md`, `.astraeon/ROADMAP_MASTER.md`, and
   `.astraeon/DOMAINS.md` as architecture source-of-truth for future ASTRAEON
@@ -157,4 +163,6 @@ Approved. The current device HAL flow is:
 
 ## Next Implementation Step
 
-Next safe implementation depends on Architect priority: prepare ASTRAEON-Hardware P0 Documentation in a separate project, or prepare R8F-4 UART RX Hardware Validation Plan in this repository. Do not mix Probe firmware into RogueMaster.
+Next safe implementation depends on Architect priority: run ASTRAEON Universe
+Blueprint Review, or prepare ASTRAEON-Hardware P0 Documentation in a separate
+project. Do not mix Probe firmware into RogueMaster.

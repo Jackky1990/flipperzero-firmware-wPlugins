@@ -2,8 +2,8 @@
 
 ## Current State
 
-Master Ecosystem Architecture is documented and Embedded SDK v1.0 RC1 remains
-prepared.
+ASTRAEON Universe Blueprint v1.0 is documented. ASTRAEON-X remains the
+preserved core platform, and Embedded SDK v1.0 RC1 remains prepared.
 
 ## Completed
 
@@ -79,6 +79,14 @@ prepared.
 - Documented the long-term ecosystem boundary: Flipper is the first reference
   target, Probe remains a separate project, and ASTRAEON is not a single
   firmware or app.
+- Added ASTRAEON Universe Blueprint v1.0.
+- Added Domain, Service, API, Event, Data, Portal, Integration Rules, Maturity,
+  and Project Registry maps.
+- Documented ASTRAEON as a Physical Intelligence Platform spanning AI,
+  embedded, hardware lab, business, communication, infrastructure, media, home,
+  robotics, cloud, data, digital twin, and developer domains.
+- Preserved ASTRAEON-X systems through the rule:
+  Preserve -> Verify -> Enhance -> Integrate.
 
 ## Verification
 
@@ -115,5 +123,5 @@ prepared.
 
 ## Next Task
 
-Prepare ASTRAEON-Hardware P0 Documentation in a separate project or prepare
-R8F-4 UART RX Hardware Validation Plan after Architect approval.
+Review ASTRAEON Universe Blueprint v1.0 or prepare ASTRAEON-Hardware P0
+Documentation in a separate project after Architect approval.
