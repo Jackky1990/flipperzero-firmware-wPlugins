@@ -54,6 +54,9 @@ typedef struct {
     bool uart_acquired;
     bool uart_configured;
     bool uart_released;
+    bool uart_tx_checked;
+    bool uart_tx_ok;
+    bool uart_tx_active;
     bool supports_stream;
     bool supports_packets;
     bool reliable;
@@ -63,6 +66,9 @@ typedef struct {
     uint32_t uart_runs;
     uint32_t uart_session_id;
     uint32_t uart_baud_rate;
+    uint32_t uart_tx_runs;
+    uint32_t uart_tx_bytes_requested;
+    uint32_t uart_tx_bytes_written;
     uint32_t max_payload_size;
     uint16_t protocol_version;
     uint8_t gpio_adapter_pin_count;
@@ -76,6 +82,7 @@ typedef struct {
     uint8_t uart_status;
     uint8_t uart_state;
     uint8_t uart_release_count;
+    uint8_t uart_tx_status;
 } AstraeonRuntimeContext;
 
 static inline AstraStatus
@@ -334,4 +341,61 @@ static inline AstraStatus astraeon_runtime_uart_timeout(AstraeonRuntimeContext* 
 
     astraeon_runtime_uart_mark_release(runtime);
     return astraeon_runtime_uart_finish(runtime, AstraStatusTimeout);
+}
+
+static inline AstraStatus astraeon_runtime_uart_tx_begin(
+    AstraeonRuntimeContext* runtime,
+    const uint8_t* data,
+    uint32_t length) {
+    if(!runtime) {
+        return AstraStatusInvalidArgument;
+    }
+
+    runtime->uart_tx_checked = true;
+    runtime->uart_tx_ok = false;
+
+    if(!runtime->uart_session_active) {
+        runtime->uart_tx_active = false;
+        runtime->uart_tx_status = AstraStatusPermissionDenied;
+        return AstraStatusPermissionDenied;
+    }
+
+    if(runtime->uart_session_id == 0 ||
+       runtime->uart_state != AstraeonUARTSessionStateActive ||
+       !runtime->uart_acquired ||
+       !runtime->uart_configured ||
+       runtime->uart_released) {
+        runtime->uart_tx_active = false;
+        runtime->uart_tx_status = AstraStatusInvalidArgument;
+        return AstraStatusInvalidArgument;
+    }
+
+    if(length > 0 && !data) {
+        runtime->uart_tx_active = false;
+        runtime->uart_tx_status = AstraStatusInvalidArgument;
+        return AstraStatusInvalidArgument;
+    }
+
+    runtime->uart_tx_runs += 1;
+    runtime->uart_tx_active = true;
+    runtime->uart_tx_bytes_requested = length;
+    runtime->uart_tx_bytes_written = 0;
+    runtime->uart_tx_status = AstraStatusInternalError;
+    return AstraStatusOk;
+}
+
+static inline AstraStatus astraeon_runtime_uart_tx_finish(
+    AstraeonRuntimeContext* runtime,
+    AstraStatus status,
+    uint32_t written) {
+    if(!runtime) {
+        return AstraStatusInvalidArgument;
+    }
+
+    runtime->uart_tx_checked = true;
+    runtime->uart_tx_ok = status == AstraStatusOk;
+    runtime->uart_tx_active = false;
+    runtime->uart_tx_bytes_written = written;
+    runtime->uart_tx_status = status;
+    return status;
 }

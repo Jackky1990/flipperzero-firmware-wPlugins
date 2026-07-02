@@ -587,6 +587,71 @@ AstraStatus astraeon_demo_runtime_controller_timeout_uart(
     return status;
 }
 
+AstraStatus astraeon_demo_runtime_controller_uart_tx(
+    AstraeonRuntimeContext* runtime,
+    AstraFlipperSerialAdapter* adapter,
+    Storage* furi_storage,
+    const uint8_t* data,
+    size_t length,
+    size_t* out_written) {
+    if(!runtime || !adapter || !out_written) {
+        return AstraStatusInvalidArgument;
+    }
+
+    *out_written = 0;
+
+    if(length > UINT32_MAX) {
+        return AstraStatusInvalidArgument;
+    }
+
+    AstraStatus status = astraeon_runtime_uart_tx_begin(runtime, data, (uint32_t)length);
+    if(status != AstraStatusOk) {
+        return status;
+    }
+
+    char session_id[32];
+    snprintf(
+        session_id,
+        sizeof(session_id),
+        "EVT-FLP-UART-TX-%lu",
+        (unsigned long)runtime->uart_session_id);
+
+    AstraStorage astra_storage;
+    AstraeonStorageAdapter storage_adapter;
+    bool storage_ready =
+        astraeon_demo_runtime_check_storage(&astra_storage, &storage_adapter, furi_storage);
+
+    if(storage_ready) {
+        astraeon_demo_runtime_log_uart_step(&astra_storage, session_id, "tx-begin", status);
+    }
+
+    size_t written = 0;
+    AstraResult result = astra_flipper_serial_adapter_write(
+        adapter,
+        (AstraFlipperSerialChannelId)runtime->uart_channel,
+        data,
+        length,
+        &written);
+
+    *out_written = written;
+    status = astraeon_runtime_uart_tx_finish(runtime, result.status, (uint32_t)written);
+
+    if(storage_ready) {
+        astraeon_demo_runtime_log_uart_step(
+            &astra_storage,
+            session_id,
+            status == AstraStatusOk ? "tx-complete" : "tx-error",
+            status);
+        astraeon_demo_runtime_record_uart_session(
+            &astra_storage,
+            session_id,
+            runtime->uart_session_id,
+            status);
+    }
+
+    return status;
+}
+
 AstraStatus astraeon_demo_runtime_controller_request_gpio_write(
     AstraeonRuntimeContext* runtime,
     Storage* furi_storage) {

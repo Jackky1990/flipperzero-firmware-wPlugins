@@ -6,6 +6,7 @@
 #include "astra_flipper_serial_adapter.h"
 
 #include <storage/storage.h>
+#include <stddef.h>
 
 void astraeon_demo_runtime_controller_start(AstraeonRuntimeContext* runtime, Storage* storage);
 
@@ -33,3 +34,11 @@ AstraStatus astraeon_demo_runtime_controller_timeout_uart(
     AstraeonRuntimeContext* runtime,
     AstraFlipperSerialAdapter* adapter,
     Storage* storage);
+
+AstraStatus astraeon_demo_runtime_controller_uart_tx(
+    AstraeonRuntimeContext* runtime,
+    AstraFlipperSerialAdapter* adapter,
+    Storage* storage,
+    const uint8_t* data,
+    size_t length,
+    size_t* out_written);

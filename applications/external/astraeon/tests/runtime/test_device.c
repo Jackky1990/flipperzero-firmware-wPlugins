@@ -544,6 +544,73 @@ bool astra_test_device(void) {
         return false;
     }
 
+    if(astraeon_runtime_uart_tx_begin(0, serial_tx_payload, sizeof(serial_tx_payload)) !=
+       AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_tx_begin(&uart_runtime, 0, sizeof(serial_tx_payload)) !=
+           AstraStatusInvalidArgument ||
+       uart_runtime.uart_tx_status != AstraStatusInvalidArgument ||
+       uart_runtime.uart_tx_runs != 0) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_tx_begin(&uart_runtime, serial_tx_payload, 0) != AstraStatusOk ||
+       !uart_runtime.uart_tx_active ||
+       uart_runtime.uart_tx_runs != 1 ||
+       uart_runtime.uart_tx_bytes_requested != 0) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_tx_finish(&uart_runtime, AstraStatusOk, 0) != AstraStatusOk ||
+       uart_runtime.uart_tx_active ||
+       !uart_runtime.uart_tx_ok ||
+       uart_runtime.uart_tx_bytes_written != 0 ||
+       !uart_runtime.uart_session_active ||
+       uart_runtime.uart_state != AstraeonUARTSessionStateActive) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_tx_begin(
+           &uart_runtime,
+           serial_tx_payload,
+           (uint32_t)sizeof(serial_tx_payload)) != AstraStatusOk ||
+       !uart_runtime.uart_tx_active ||
+       uart_runtime.uart_tx_runs != 2 ||
+       uart_runtime.uart_tx_bytes_requested != sizeof(serial_tx_payload)) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_tx_finish(
+           &uart_runtime,
+           AstraStatusOk,
+           (uint32_t)sizeof(serial_tx_payload)) != AstraStatusOk ||
+       uart_runtime.uart_tx_active ||
+       !uart_runtime.uart_tx_ok ||
+       uart_runtime.uart_tx_bytes_written != sizeof(serial_tx_payload) ||
+       !uart_runtime.uart_session_active ||
+       uart_runtime.uart_state != AstraeonUARTSessionStateActive) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_tx_begin(
+           &uart_runtime,
+           serial_tx_payload,
+           (uint32_t)sizeof(serial_tx_payload)) != AstraStatusOk) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_tx_finish(&uart_runtime, AstraStatusPermissionDenied, 0) !=
+           AstraStatusPermissionDenied ||
+       uart_runtime.uart_tx_active ||
+       uart_runtime.uart_tx_ok ||
+       uart_runtime.uart_tx_status != AstraStatusPermissionDenied ||
+       !uart_runtime.uart_session_active ||
+       uart_runtime.uart_state != AstraeonUARTSessionStateActive) {
+        return false;
+    }
+
     if(astraeon_runtime_uart_close_begin(&uart_runtime) != AstraStatusOk ||
        uart_runtime.uart_state != AstraeonUARTSessionStateClosing) {
         return false;
@@ -559,6 +626,31 @@ bool astra_test_device(void) {
        uart_runtime.uart_session_active ||
        !uart_runtime.uart_ok ||
        uart_runtime.uart_state != AstraeonUARTSessionStateClosed) {
+        return false;
+    }
+
+    uart_runtime = (AstraeonRuntimeContext){0};
+    if(astraeon_runtime_uart_tx_begin(
+           &uart_runtime,
+           serial_tx_payload,
+           (uint32_t)sizeof(serial_tx_payload)) != AstraStatusPermissionDenied ||
+       uart_runtime.uart_tx_status != AstraStatusPermissionDenied ||
+       uart_runtime.uart_tx_runs != 0) {
+        return false;
+    }
+
+    uart_runtime = (AstraeonRuntimeContext){0};
+    uart_runtime.uart_session_active = true;
+    uart_runtime.uart_session_id = 1;
+    uart_runtime.uart_acquired = true;
+    uart_runtime.uart_configured = false;
+    uart_runtime.uart_state = AstraeonUARTSessionStateAcquired;
+    if(astraeon_runtime_uart_tx_begin(
+           &uart_runtime,
+           serial_tx_payload,
+           (uint32_t)sizeof(serial_tx_payload)) != AstraStatusInvalidArgument ||
+       uart_runtime.uart_tx_status != AstraStatusInvalidArgument ||
+       uart_runtime.uart_tx_runs != 0) {
         return false;
     }
 

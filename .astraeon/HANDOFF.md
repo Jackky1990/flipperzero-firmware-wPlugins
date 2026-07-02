@@ -2,7 +2,7 @@
 
 ## Current State
 
-AEO Auto Release Pipeline upgrade is complete and verified.
+R8E-2 UART Controller TX Workflow is complete and verified.
 
 ## Completed
 
@@ -21,6 +21,13 @@ AEO Auto Release Pipeline upgrade is complete and verified.
 - Accounted accepted write length through `out_written`.
 - Mirrored the adapter primitive into the demo SDK copy to preserve SDK drift checks.
 - Added host/runtime tests for invalid arguments, invalid channel, write-before-acquire, zero-length write, and bounded write accounting.
+- Added controller-owned UART TX workflow for active UART sessions.
+- Added runtime TX state fields for checked/active/ok/status/run count/requested bytes/written bytes.
+- Added TX begin/finish runtime helpers.
+- Wired controller TX flow to `astra_flipper_serial_adapter_write`.
+- Preserved existing UART session after TX.
+- Added best-effort UART TX log/event persistence using the existing session id.
+- Added runtime tests for inactive session, invalid session state, invalid data, zero-length TX, successful TX, and adapter failure status.
 
 ## Verification
 
@@ -36,13 +43,7 @@ AEO Auto Release Pipeline upgrade is complete and verified.
 
 ## Constraints Preserved
 
-- Automation only for this upgrade.
-- No firmware logic changes.
-- No SDK behavior changes.
-- No runtime behavior changes.
-- No Flipper HAL changes.
-- TX adapter primitive only.
-- No controller TX workflow.
+- Controller TX workflow only.
 - No RX.
 - No `furi_hal_serial_init`.
 - No `furi_hal_serial_deinit`.
@@ -58,4 +59,4 @@ AEO Auto Release Pipeline upgrade is complete and verified.
 
 ## Next Task
 
-Implement R8E-2 UART Controller TX Workflow after Architect approval.
+Plan R8E-3 UART TX Hardware Validation after Architect approval.
