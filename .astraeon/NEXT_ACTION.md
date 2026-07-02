@@ -1,6 +1,6 @@
 # Next Action
 
-R8B is complete. ASTRAEON UART Contract Foundation now defines platform-independent UART config, status, diagnostics, and session validation without Flipper HAL calls, DMA, IRQ callbacks, hardware read/write, USB CDC changes, or firmware-core changes.
+R8C is complete. ASTRAEON now has a thin Flipper UART adapter skeleton with channel mapping, allowlist baud validation, acquire/release ownership state, busy-state query, and host/runtime tests. It does not implement TX/RX transfer, DMA, IRQ callbacks, worker threads, stream buffers, polling, demo UI integration, runtime sessions, USB CDC changes, or firmware-core changes.
 
 ## Architecture Status
 
@@ -32,6 +32,14 @@ Approved. The current device HAL flow is:
   - `AstraDeviceSerialDiagnostics`
   - `AstraDeviceSerialSession`
   - validation only; no hardware behavior
+- Thin Flipper UART adapter skeleton:
+  - primary and secondary channel mapping
+  - baud allowlist validation
+  - acquire/release lifecycle
+  - idempotent release
+  - busy-state query
+  - minimal adapter state
+  - no TX/RX, DMA, IRQ/callback, worker, polling, logging, persistence, or runtime workflow
 
 ## Blocker
 
@@ -43,9 +51,9 @@ Approved. The current device HAL flow is:
 - Prepare ASTRAEON Hardware Validation Board plan.
 - Define safe PC0 validation hardware before resuming controlled GPIO write validation.
 - Keep PC0 as the only validation target unless Architect changes the pin policy.
-- Implement R8C Thin Flipper UART Adapter Skeleton after Architect approval.
-- Keep R8C side-effect free unless explicitly approved.
+- Design R8D UART Controller Session workflow after Architect approval.
+- Keep R8D separate from UART TX/RX data transfer unless explicitly approved.
 
 ## Next Implementation Step
 
-Prepare R8C Thin Flipper UART Adapter Skeleton for Architect review. Do not add UART DMA, IRQ callbacks, hardware read/write, USB CDC changes, expansion service changes, polling, or firmware-core changes without explicit approval.
+Prepare R8D UART Controller Session Design for Architect review. Do not add UART TX/RX data transfer, DMA, IRQ callbacks, worker threads, stream buffers, polling, USB CDC changes, expansion service changes, or firmware-core changes without explicit approval.
