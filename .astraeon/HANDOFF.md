@@ -2,7 +2,7 @@
 
 ## Current State
 
-R8F-1 UART RX Runtime Foundation is complete and verified.
+R8F-2 UART Async RX Adapter is complete and verified.
 
 ## Completed
 
@@ -45,6 +45,16 @@ R8F-1 UART RX Runtime Foundation is complete and verified.
 - Rejected invalid UART session state with `AstraStatusInvalidArgument`.
 - Reset RX active/state on UART close/finish.
 - Added runtime tests for inactive session rejection, duplicate RX rejection, RX arm state, timeout, cancel, diagnostics counters, and reset on close.
+- Added thin async RX primitives to the Flipper serial adapter.
+- Added a fixed 256-byte RX ring buffer per adapter channel.
+- Added ISR-safe byte copy into the preallocated ring buffer.
+- Added RX available, read, clear, start, and stop adapter helpers.
+- Added adapter RX counters for bytes received, bytes read, overflow count, and error count.
+- Rejected duplicate async RX start with `AstraStatusBusy`.
+- Kept duplicate async RX stop idempotent.
+- Ensured adapter release stops active async RX and resets RX adapter state.
+- Mirrored the adapter implementation into the demo SDK copy to preserve SDK drift.
+- Added host/runtime tests for start/stop, duplicate start, duplicate stop, empty buffer, full buffer, overflow counter, clear, read ordering, and wrap-around.
 
 ## Verification
 
@@ -60,17 +70,19 @@ R8F-1 UART RX Runtime Foundation is complete and verified.
 
 ## Constraints Preserved
 
-- Controller TX workflow only.
-- RX contract/runtime state only.
-- No Flipper HAL RX calls.
-- No async RX callback.
+- Adapter RX primitive only.
+- No controller workflow.
+- No runtime state updates from the adapter.
+- No logger.
+- No persistence.
+- No UI.
 - No `furi_hal_serial_init`.
 - No `furi_hal_serial_deinit`.
 - No DMA.
-- No IRQ/callbacks.
+- No DMA IRQ/callbacks.
 - No worker threads.
 - No stream buffers.
-- No polling.
+- No background polling.
 - Minimal demo UI trigger only for UART TX validation.
 - No USB CDC changes.
 - No expansion service changes.
@@ -79,4 +91,4 @@ R8F-1 UART RX Runtime Foundation is complete and verified.
 
 ## Next Task
 
-Implement R8F-2 UART RX Adapter Primitive after Architect approval.
+Implement R8F-3 UART RX Controller Workflow after Architect approval.

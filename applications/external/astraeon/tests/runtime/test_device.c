@@ -35,7 +35,10 @@ bool astra_test_device(void) {
     bool gpio_mode_changed = true;
     bool serial_busy = true;
     const uint8_t serial_tx_payload[] = {0x41, 0x53, 0x54, 0x52, 0x41};
+    uint8_t serial_rx_buffer[ASTRA_FLIPPER_SERIAL_RX_BUFFER_SIZE] = {0};
     size_t serial_written = 99;
+    size_t serial_available = 99;
+    size_t serial_read = 99;
 
     if(astra_device_init(0, "flipper").status != AstraStatusInvalidArgument) {
         return false;
@@ -485,6 +488,23 @@ bool astra_test_device(void) {
         return false;
     }
 
+    if(astra_flipper_serial_adapter_start_async_rx(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary)
+           .status != AstraStatusPermissionDenied) {
+        return false;
+    }
+
+    serial_available = 99;
+    if(astra_flipper_serial_adapter_rx_available(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           &serial_available)
+           .status != AstraStatusOk ||
+       serial_available != 0) {
+        return false;
+    }
+
     if(astraeon_runtime_uart_open_begin(0, &serial_config) != AstraStatusInvalidArgument) {
         return false;
     }
@@ -793,6 +813,161 @@ bool astra_test_device(void) {
     }
 
     if(serial_written != sizeof(serial_tx_payload)) {
+        return false;
+    }
+
+    if(astra_flipper_serial_adapter_start_async_rx(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary)
+           .status != AstraStatusOk ||
+       !serial_adapter.channels[AstraFlipperSerialChannelPrimary].rx_active) {
+        return false;
+    }
+
+    if(astra_flipper_serial_adapter_start_async_rx(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary)
+           .status != AstraStatusBusy) {
+        return false;
+    }
+
+    serial_available = 99;
+    if(astra_flipper_serial_adapter_rx_available(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           &serial_available)
+           .status != AstraStatusOk ||
+       serial_available != 0) {
+        return false;
+    }
+
+    serial_read = 99;
+    if(astra_flipper_serial_adapter_read(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           serial_rx_buffer,
+           sizeof(serial_rx_buffer),
+           &serial_read)
+           .status != AstraStatusOk ||
+       serial_read != 0) {
+        return false;
+    }
+
+    if(astra_flipper_serial_adapter_rx_isr_copy_byte(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           0x10)
+           .status != AstraStatusOk ||
+       astra_flipper_serial_adapter_rx_isr_copy_byte(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           0x11)
+               .status != AstraStatusOk ||
+       astra_flipper_serial_adapter_rx_isr_copy_byte(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           0x12)
+               .status != AstraStatusOk) {
+        return false;
+    }
+
+    serial_read = 0;
+    if(astra_flipper_serial_adapter_read(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           serial_rx_buffer,
+           2,
+           &serial_read)
+           .status != AstraStatusOk ||
+       serial_read != 2 ||
+       serial_rx_buffer[0] != 0x10 ||
+       serial_rx_buffer[1] != 0x11) {
+        return false;
+    }
+
+    for(size_t index = 0; index < ASTRA_FLIPPER_SERIAL_RX_BUFFER_SIZE - 1u; ++index) {
+        if(astra_flipper_serial_adapter_rx_isr_copy_byte(
+               &serial_adapter,
+               AstraFlipperSerialChannelPrimary,
+               (uint8_t)index)
+               .status != AstraStatusOk) {
+            return false;
+        }
+    }
+
+    serial_available = 0;
+    if(astra_flipper_serial_adapter_rx_available(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           &serial_available)
+           .status != AstraStatusOk ||
+       serial_available != ASTRA_FLIPPER_SERIAL_RX_BUFFER_SIZE) {
+        return false;
+    }
+
+    if(astra_flipper_serial_adapter_rx_isr_copy_byte(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           0xFF)
+           .status != AstraStatusOk ||
+       serial_adapter.channels[AstraFlipperSerialChannelPrimary].rx_overflow_count != 1) {
+        return false;
+    }
+
+    serial_read = 0;
+    if(astra_flipper_serial_adapter_read(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           serial_rx_buffer,
+           sizeof(serial_rx_buffer),
+           &serial_read)
+           .status != AstraStatusOk ||
+       serial_read != ASTRA_FLIPPER_SERIAL_RX_BUFFER_SIZE ||
+       serial_rx_buffer[0] != 0x12 ||
+       serial_rx_buffer[1] != 0x00 ||
+       serial_rx_buffer[ASTRA_FLIPPER_SERIAL_RX_BUFFER_SIZE - 1u] != 0xFE) {
+        return false;
+    }
+
+    if(serial_adapter.channels[AstraFlipperSerialChannelPrimary].rx_bytes_received !=
+           ASTRA_FLIPPER_SERIAL_RX_BUFFER_SIZE + 2u ||
+       serial_adapter.channels[AstraFlipperSerialChannelPrimary].rx_bytes_read !=
+           ASTRA_FLIPPER_SERIAL_RX_BUFFER_SIZE + 2u) {
+        return false;
+    }
+
+    if(astra_flipper_serial_adapter_rx_isr_copy_byte(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           0x21)
+           .status != AstraStatusOk ||
+       astra_flipper_serial_adapter_clear(&serial_adapter, AstraFlipperSerialChannelPrimary)
+               .status != AstraStatusOk) {
+        return false;
+    }
+
+    serial_available = 99;
+    if(astra_flipper_serial_adapter_rx_available(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           &serial_available)
+           .status != AstraStatusOk ||
+       serial_available != 0) {
+        return false;
+    }
+
+    if(astra_flipper_serial_adapter_stop_async_rx(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary)
+           .status != AstraStatusOk ||
+       serial_adapter.channels[AstraFlipperSerialChannelPrimary].rx_active) {
+        return false;
+    }
+
+    if(astra_flipper_serial_adapter_stop_async_rx(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary)
+           .status != AstraStatusOk) {
         return false;
     }
 

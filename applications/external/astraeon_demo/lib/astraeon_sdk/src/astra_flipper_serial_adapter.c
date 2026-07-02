@@ -110,6 +110,77 @@ static FuriHalSerialId astra_flipper_serial_control_id(AstraFlipperSerialChannel
     };
     return serial_ids[channel];
 }
+
+static void astra_flipper_serial_adapter_on_rx(
+    FuriHalSerialHandle* handle,
+    FuriHalSerialRxEvent event,
+    void* context);
+#endif
+
+static void astra_flipper_serial_binding_rx_clear(AstraFlipperSerialChannelBinding* binding) {
+    if(binding) {
+        binding->rx_head = 0;
+        binding->rx_tail = 0;
+        binding->rx_count = 0;
+    }
+}
+
+static void astra_flipper_serial_binding_rx_reset(AstraFlipperSerialChannelBinding* binding) {
+    if(binding) {
+        astra_flipper_serial_binding_rx_clear(binding);
+        binding->rx_bytes_received = 0;
+        binding->rx_bytes_read = 0;
+        binding->rx_overflow_count = 0;
+        binding->rx_error_count = 0;
+        binding->rx_active = false;
+    }
+}
+
+static bool astra_flipper_serial_binding_rx_push_byte(
+    AstraFlipperSerialChannelBinding* binding,
+    uint8_t byte) {
+    if(!binding) {
+        return false;
+    }
+
+    if(binding->rx_count >= ASTRA_FLIPPER_SERIAL_RX_BUFFER_SIZE) {
+        binding->rx_overflow_count += 1;
+        return false;
+    }
+
+    binding->rx_buffer[binding->rx_head] = byte;
+    binding->rx_head = (binding->rx_head + 1u) % ASTRA_FLIPPER_SERIAL_RX_BUFFER_SIZE;
+    binding->rx_count += 1;
+    binding->rx_bytes_received += 1;
+    return true;
+}
+
+#if defined(ASTRA_FLIPPER_SERIAL_HAS_CONTROL)
+static void astra_flipper_serial_adapter_on_rx(
+    FuriHalSerialHandle* handle,
+    FuriHalSerialRxEvent event,
+    void* context) {
+    AstraFlipperSerialChannelBinding* binding = context;
+    if(!binding || !binding->rx_active) {
+        return;
+    }
+
+    if(event & FuriHalSerialRxEventData) {
+        while(furi_hal_serial_async_rx_available(handle)) {
+            uint8_t byte = furi_hal_serial_async_rx(handle);
+            astra_flipper_serial_binding_rx_push_byte(binding, byte);
+        }
+    }
+
+    if(event & FuriHalSerialRxEventOverrunError) {
+        binding->rx_overflow_count += 1;
+        binding->rx_error_count += 1;
+    }
+
+    if(event & (FuriHalSerialRxEventFrameError | FuriHalSerialRxEventNoiseError)) {
+        binding->rx_error_count += 1;
+    }
+}
 #endif
 
 AstraResult astra_flipper_serial_adapter_init(AstraFlipperSerialAdapter* adapter) {
@@ -124,6 +195,7 @@ AstraResult astra_flipper_serial_adapter_init(AstraFlipperSerialAdapter* adapter
         adapter->channels[index].contract =
             astra_flipper_serial_default_contract((AstraDeviceSerialChannel)index);
         adapter->channels[index].flipper_handle = 0;
+        astra_flipper_serial_binding_rx_reset(&adapter->channels[index]);
         adapter->channels[index].acquired = false;
     }
 
@@ -250,12 +322,17 @@ AstraResult astra_flipper_serial_adapter_release(
     }
 
 #if defined(ASTRA_FLIPPER_SERIAL_HAS_CONTROL)
+    if(binding->rx_active && binding->flipper_handle) {
+        furi_hal_serial_async_rx_stop(binding->flipper_handle);
+    }
+
     if(binding->flipper_handle) {
         furi_hal_serial_control_release(binding->flipper_handle);
     }
 #endif
 
     binding->flipper_handle = 0;
+    astra_flipper_serial_binding_rx_reset(binding);
     binding->acquired = false;
     return astra_result_ok();
 }
@@ -324,5 +401,147 @@ AstraResult astra_flipper_serial_adapter_write(
 #endif
 
     *out_written = length;
+    return astra_result_ok();
+}
+
+AstraResult astra_flipper_serial_adapter_start_async_rx(
+    AstraFlipperSerialAdapter* adapter,
+    AstraFlipperSerialChannelId channel) {
+    AstraFlipperSerialChannelBinding* binding = 0;
+    AstraResult result = astra_flipper_serial_adapter_resolve_channel_mut(adapter, channel, &binding);
+    if(result.status != AstraStatusOk) {
+        return result;
+    }
+
+    if(!binding->acquired || !binding->flipper_handle) {
+        return astra_result_error(
+            AstraStatusPermissionDenied,
+            "flipper serial channel is not acquired");
+    }
+
+    if(binding->rx_active) {
+        return astra_result_error(AstraStatusBusy, "flipper serial async rx is already active");
+    }
+
+    astra_flipper_serial_binding_rx_clear(binding);
+    binding->rx_active = true;
+
+#if defined(ASTRA_FLIPPER_SERIAL_HAS_CONTROL)
+    furi_hal_serial_async_rx_start(
+        binding->flipper_handle,
+        astra_flipper_serial_adapter_on_rx,
+        binding,
+        true);
+#endif
+
+    return astra_result_ok();
+}
+
+AstraResult astra_flipper_serial_adapter_stop_async_rx(
+    AstraFlipperSerialAdapter* adapter,
+    AstraFlipperSerialChannelId channel) {
+    AstraFlipperSerialChannelBinding* binding = 0;
+    AstraResult result = astra_flipper_serial_adapter_resolve_channel_mut(adapter, channel, &binding);
+    if(result.status != AstraStatusOk) {
+        return result;
+    }
+
+    if(!binding->rx_active) {
+        return astra_result_ok();
+    }
+
+#if defined(ASTRA_FLIPPER_SERIAL_HAS_CONTROL)
+    if(binding->flipper_handle) {
+        furi_hal_serial_async_rx_stop(binding->flipper_handle);
+    }
+#endif
+
+    binding->rx_active = false;
+    return astra_result_ok();
+}
+
+AstraResult astra_flipper_serial_adapter_rx_available(
+    const AstraFlipperSerialAdapter* adapter,
+    AstraFlipperSerialChannelId channel,
+    size_t* out_available) {
+    const AstraFlipperSerialChannelBinding* binding = 0;
+    if(!out_available) {
+        return astra_result_error(AstraStatusInvalidArgument, "flipper serial rx count is null");
+    }
+
+    *out_available = 0;
+
+    AstraResult result = astra_flipper_serial_adapter_resolve_channel(adapter, channel, &binding);
+    if(result.status != AstraStatusOk) {
+        return result;
+    }
+
+    *out_available = binding->rx_count;
+    return astra_result_ok();
+}
+
+AstraResult astra_flipper_serial_adapter_read(
+    AstraFlipperSerialAdapter* adapter,
+    AstraFlipperSerialChannelId channel,
+    uint8_t* out_data,
+    size_t length,
+    size_t* out_read) {
+    if(!out_read) {
+        return astra_result_error(AstraStatusInvalidArgument, "flipper serial read count is null");
+    }
+
+    *out_read = 0;
+
+    if(length > 0 && !out_data) {
+        return astra_result_error(AstraStatusInvalidArgument, "flipper serial read buffer is null");
+    }
+
+    AstraFlipperSerialChannelBinding* binding = 0;
+    AstraResult result = astra_flipper_serial_adapter_resolve_channel_mut(adapter, channel, &binding);
+    if(result.status != AstraStatusOk) {
+        return result;
+    }
+
+    while(*out_read < length && binding->rx_count > 0) {
+        out_data[*out_read] = binding->rx_buffer[binding->rx_tail];
+        binding->rx_tail = (binding->rx_tail + 1u) % ASTRA_FLIPPER_SERIAL_RX_BUFFER_SIZE;
+        binding->rx_count -= 1;
+        *out_read += 1;
+    }
+
+    binding->rx_bytes_read += *out_read;
+    return astra_result_ok();
+}
+
+AstraResult astra_flipper_serial_adapter_clear(
+    AstraFlipperSerialAdapter* adapter,
+    AstraFlipperSerialChannelId channel) {
+    AstraFlipperSerialChannelBinding* binding = 0;
+    AstraResult result = astra_flipper_serial_adapter_resolve_channel_mut(adapter, channel, &binding);
+    if(result.status != AstraStatusOk) {
+        return result;
+    }
+
+    astra_flipper_serial_binding_rx_clear(binding);
+    return astra_result_ok();
+}
+
+AstraResult astra_flipper_serial_adapter_rx_isr_copy_byte(
+    AstraFlipperSerialAdapter* adapter,
+    AstraFlipperSerialChannelId channel,
+    uint8_t byte) {
+    AstraFlipperSerialChannelBinding* binding = 0;
+    AstraResult result = astra_flipper_serial_adapter_resolve_channel_mut(adapter, channel, &binding);
+    if(result.status != AstraStatusOk) {
+        return result;
+    }
+
+    if(!binding->rx_active) {
+        return astra_result_error(
+            AstraStatusPermissionDenied,
+            "flipper serial async rx is not active");
+    }
+
+    astra_flipper_serial_binding_rx_push_byte(binding, byte);
     return astra_result_ok();
 }
