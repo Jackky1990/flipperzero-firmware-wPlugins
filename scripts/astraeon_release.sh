@@ -4,11 +4,16 @@ set -euo pipefail
 SCRIPT_NAME="$(basename "$0")"
 DRY_RUN=0
 ALLOW_MAIN=0
+AUTO=0
+COMMIT_HASH=""
+PUSH_RESULT="not-run"
+SYNC_RESULT="not-run"
+VERIFICATION_RESULT="not-run"
 
 usage() {
     cat <<USAGE
 Usage:
-  ./${SCRIPT_NAME} [--dry-run] [--allow-main] "commit message"
+  ./${SCRIPT_NAME} [--auto] [--dry-run] [--allow-main] "commit message"
 
 Runs ASTRAEON verification, commits current changes, pushes the current branch,
 and confirms the local branch is synchronized with origin.
@@ -33,8 +38,20 @@ run_step() {
     "$@" || fail "$step" "command failed"
 }
 
+print_report() {
+    info "REPORT branch=${BRANCH:-unknown}"
+    info "REPORT verification=${VERIFICATION_RESULT}"
+    info "REPORT commit=${COMMIT_HASH:-none}"
+    info "REPORT push=${PUSH_RESULT}"
+    info "REPORT sync=${SYNC_RESULT}"
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --auto)
+            AUTO=1
+            shift
+            ;;
         --dry-run)
             DRY_RUN=1
             shift
@@ -82,7 +99,14 @@ CONFLICTS="$(git diff --name-only --diff-filter=U)"
 [[ -z "$CONFLICTS" ]] || fail "working tree check" "merge conflict paths present"
 
 STATUS_OUTPUT="$(git status --porcelain)"
-[[ -n "$STATUS_OUTPUT" ]] || fail "working tree check" "no staged or unstaged changes to release"
+if [[ -z "$STATUS_OUTPUT" ]]; then
+    VERIFICATION_RESULT="skipped"
+    PUSH_RESULT="skipped"
+    SYNC_RESULT="skipped"
+    info "nothing to release"
+    print_report
+    exit 0
+fi
 
 changed_paths() {
     git status --porcelain | while IFS= read -r line; do
@@ -119,6 +143,11 @@ while IFS= read -r path; do
     fi
 done < <(changed_paths)
 
+info "Changed files:"
+while IFS= read -r path; do
+    info "  ${path}"
+done < <(changed_paths)
+
 if [[ "${#FORBIDDEN[@]}" -gt 0 ]]; then
     printf '[ASTRAEON RELEASE] Forbidden modified paths:\n' >&2
     printf '  %s\n' "${FORBIDDEN[@]}" >&2
@@ -145,7 +174,17 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
     [[ -f "$AEP_TOOL" ]] && info "DRY RUN: would run Runtime Tests, Architecture Audit, and AEP Verify"
     [[ -f "$ASTRAEON_CI" ]] && info "DRY RUN: would run ASTRAEON CI"
     info "DRY RUN: would commit with message: ${COMMIT_MESSAGE}"
-    info "DRY RUN: would push origin ${BRANCH}"
+    if [[ "$AUTO" -eq 1 ]]; then
+        info "DRY RUN: would push origin ${BRANCH}"
+        PUSH_RESULT="would-run"
+        SYNC_RESULT="would-run"
+    else
+        info "DRY RUN: would stop after local commit; pass --auto to push"
+        PUSH_RESULT="skipped"
+        SYNC_RESULT="skipped"
+    fi
+    VERIFICATION_RESULT="would-run"
+    print_report
     exit 0
 fi
 
@@ -168,15 +207,38 @@ if [[ -f "$ASTRAEON_CI" ]]; then
 else
     info "SKIP: ASTRAEON CI not found"
 fi
+VERIFICATION_RESULT="passed"
 
 run_step "stage changes" git add -A
 git diff --cached --quiet && fail "commit" "no staged changes after git add"
 run_step "commit" git commit -m "$COMMIT_MESSAGE"
-run_step "push" git push origin "$BRANCH"
+COMMIT_HASH="$(git rev-parse --short=10 HEAD)"
+
+if [[ "$AUTO" -ne 1 ]]; then
+    PUSH_RESULT="skipped"
+    SYNC_RESULT="skipped"
+    info "PASS: committed ${COMMIT_HASH}; pass --auto to push after verification"
+    print_report
+    exit 0
+fi
+
+info "RUN: push"
+if ! git push origin "$BRANCH"; then
+    PUSH_RESULT="failed"
+    SYNC_RESULT="not-run"
+    printf '[ASTRAEON RELEASE] FAIL: push: command failed\n' >&2
+    printf '[ASTRAEON RELEASE] Recovery command: git push origin %s\n' "$BRANCH" >&2
+    print_report
+    exit 1
+fi
+PUSH_RESULT="passed"
+
 run_step "fetch pushed branch" git fetch origin "$BRANCH"
 
 LOCAL_HEAD="$(git rev-parse HEAD)"
 REMOTE_HEAD="$(git rev-parse "origin/${BRANCH}")"
 [[ "$LOCAL_HEAD" == "$REMOTE_HEAD" ]] || fail "sync check" "local ${LOCAL_HEAD} differs from origin/${BRANCH} ${REMOTE_HEAD}"
 
+SYNC_RESULT="passed"
 info "PASS: local branch is synchronized with origin/${BRANCH}"
+print_report

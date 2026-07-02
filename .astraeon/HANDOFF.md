@@ -2,10 +2,17 @@
 
 ## Current State
 
-R8E-1 UART TX Adapter Primitive is complete and verified.
+AEO Auto Release Pipeline upgrade is complete and verified.
 
 ## Completed
 
+- Upgraded `scripts/astraeon_release.sh` with explicit `--auto` mode.
+- Added safe VERIFY -> COMMIT -> PUSH -> VERIFY REMOTE SYNC flow.
+- Preserved `--dry-run`.
+- Made clean working tree exit successfully with `nothing to release`.
+- Added release report output for branch, verification, commit, push, and sync.
+- Added push failure handling with a recovery command.
+- Preserved forbidden path checks and `main`/`master` rejection.
 - Added `astra_flipper_serial_adapter_write`.
 - Kept the adapter thin: no logging, persistence, runtime events, retries, or policy logic.
 - Required an acquired serial channel before write.
@@ -29,6 +36,11 @@ R8E-1 UART TX Adapter Primitive is complete and verified.
 
 ## Constraints Preserved
 
+- Automation only for this upgrade.
+- No firmware logic changes.
+- No SDK behavior changes.
+- No runtime behavior changes.
+- No Flipper HAL changes.
 - TX adapter primitive only.
 - No controller TX workflow.
 - No RX.

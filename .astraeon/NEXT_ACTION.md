@@ -1,6 +1,6 @@
 # Next Action
 
-R8E-1 is complete. ASTRAEON now has a thin UART TX adapter primitive that validates arguments, requires an acquired channel before write, supports zero-length writes safely, and reports the accepted byte count through `out_written`.
+The AEO auto release pipeline upgrade is complete. `scripts/astraeon_release.sh` now supports explicit `--auto` mode for VERIFY -> COMMIT -> PUSH -> VERIFY REMOTE SYNC, exits cleanly when there is nothing to release, and reports branch, changed files, verification, commit, push, and sync results.
 
 ## Architecture Status
 
@@ -56,6 +56,16 @@ Approved. The current device HAL flow is:
   - supports zero-length writes with zero bytes written
   - records bounded accepted byte count
   - no RX, IRQ/callbacks, DMA, worker threads, stream buffers, polling, controller workflow, UI, USB CDC changes, expansion service changes, or firmware-core changes
+- AEO auto release pipeline:
+  - `scripts/astraeon_release.sh --auto "message"`
+  - verifies repository and branch safety
+  - rejects `main` and `master` unless explicitly allowed
+  - rejects merge conflicts and forbidden paths
+  - runs ASTRAEON verification before commit
+  - commits only after green verification
+  - pushes only in `--auto` mode after commit succeeds
+  - verifies local and origin branch synchronization
+  - exits cleanly with `nothing to release` when the working tree is clean
 
 ## Blocker
 

@@ -1,7 +1,7 @@
 {
   "project": "ASTRAEON-X",
   "orchestrator": "AEO",
-  "phase": "R8E-1",
+  "phase": "AEO Auto Release Pipeline",
   "status": "COMPLETED",
   "health": "GREEN",
   "blocker": "R7D-5C hardware validation remains blocked until LED + 330Ω/1kΩ resistor or validated hardware test board is available",
