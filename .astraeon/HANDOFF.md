@@ -2,7 +2,7 @@
 
 ## Current State
 
-R8E-4A UART Validation Trigger is complete and verified.
+R8F-1 UART RX Runtime Foundation is complete and verified.
 
 ## Completed
 
@@ -37,6 +37,14 @@ R8E-4A UART Validation Trigger is complete and verified.
 - Wired the screen `OK` action to the existing controller-owned UART open -> TX -> close sequence.
 - Reused payload `ASTRAEON UART TEST 001`.
 - Updated the hardware validation guide with the concrete demo trigger path.
+- Added UART RX runtime/session state fields.
+- Added UART RX diagnostics counters for runs, expected bytes, received bytes, timeouts, overflows, and errors.
+- Added RX runtime helpers for arm, record, finish, cancel, and timeout.
+- Rejected inactive RX with `AstraStatusPermissionDenied`.
+- Rejected duplicate RX with `AstraStatusBusy`.
+- Rejected invalid UART session state with `AstraStatusInvalidArgument`.
+- Reset RX active/state on UART close/finish.
+- Added runtime tests for inactive session rejection, duplicate RX rejection, RX arm state, timeout, cancel, diagnostics counters, and reset on close.
 
 ## Verification
 
@@ -53,7 +61,9 @@ R8E-4A UART Validation Trigger is complete and verified.
 ## Constraints Preserved
 
 - Controller TX workflow only.
-- No RX.
+- RX contract/runtime state only.
+- No Flipper HAL RX calls.
+- No async RX callback.
 - No `furi_hal_serial_init`.
 - No `furi_hal_serial_deinit`.
 - No DMA.
@@ -69,4 +79,4 @@ R8E-4A UART Validation Trigger is complete and verified.
 
 ## Next Task
 
-Execute R8E-4 UART TX Hardware Validation with known-good USB-UART hardware connected.
+Implement R8F-2 UART RX Adapter Primitive after Architect approval.

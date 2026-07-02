@@ -1,6 +1,6 @@
 # Next Action
 
-R8E-4A UART Validation Trigger is complete. The demo now exposes a minimal `UART TX` screen that triggers the existing controller-owned UART session lifecycle and TX workflow with payload `ASTRAEON UART TEST 001`.
+R8F-1 UART RX Runtime Foundation is complete. The runtime now has RX session state, RX diagnostics counters, RX arm/record/finish/cancel/timeout helpers, and host/runtime coverage for RX state transitions without any Flipper HAL RX calls.
 
 ## Architecture Status
 
@@ -83,6 +83,15 @@ Approved. The current device HAL flow is:
   - sequence: open UART session, transmit `ASTRAEON UART TEST 001`, close UART session
   - reuses existing controller workflow, adapter primitive, runtime diagnostics, storage log, and persistent event path
   - no RX, DMA, IRQ/callbacks, workers, polling, stream buffers, USB CDC changes, expansion service changes, firmware-core changes, or new UART APIs
+- UART RX runtime foundation:
+  - RX state fields for checked, ok, active, status, and state
+  - RX diagnostics counters for runs, expected bytes, received bytes, timeout count, overflow count, and error count
+  - runtime helpers for arm, record diagnostics, finish, cancel, and timeout
+  - inactive sessions rejected with `AstraStatusPermissionDenied`
+  - duplicate RX rejected with `AstraStatusBusy`
+  - invalid active session state rejected with `AstraStatusInvalidArgument`
+  - RX state resets on UART close/finish
+  - no Flipper HAL RX calls, async callback, DMA, IRQ, worker thread, stream buffer, polling, UI, USB CDC change, expansion service change, firmware-core change, or hardware validation
 - AEO auto release pipeline:
   - `scripts/astraeon_release.sh --auto "message"`
   - verifies repository and branch safety
@@ -105,8 +114,9 @@ Approved. The current device HAL flow is:
 - Define safe PC0 validation hardware before resuming controlled GPIO write validation.
 - Keep PC0 as the only validation target unless Architect changes the pin policy.
 - Execute R8E-4 UART TX Hardware Validation with known-good USB-UART hardware connected.
+- Implement R8F-2 UART RX Adapter Primitive after Architect approval.
 - Keep R8E separated from RX, DMA, IRQ/callbacks, worker threads, stream buffers, USB CDC changes, expansion service changes, and firmware-core changes unless explicitly approved.
 
 ## Next Implementation Step
 
-Execute R8E-4 UART TX Hardware Validation using `applications/external/astraeon/docs/UART_TX_HARDWARE_VALIDATION.md`. Connect Flipper pin 13 USART TX to USB-UART RX, connect common GND, open the USB-UART terminal at `115200 8N1`, launch `ASTRAEON Demo`, navigate to `UART TX`, press `OK` once, and capture terminal output, session id, diagnostics counters, release count, storage logs, and persistent event evidence before any RX work begins.
+Implement R8F-2 UART RX Adapter Primitive after Architect approval. The safe boundary is adapter-level RX primitive support only: no controller workflow, no UI, no DMA, no IRQ/callbacks unless explicitly approved by architecture, no polling, no worker thread, no stream buffer, no USB CDC changes, no expansion service changes, and no firmware-core changes.

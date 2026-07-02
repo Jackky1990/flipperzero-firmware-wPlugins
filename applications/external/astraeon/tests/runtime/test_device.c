@@ -611,8 +611,76 @@ bool astra_test_device(void) {
         return false;
     }
 
+    if(astraeon_runtime_uart_rx_arm(0, 8) != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_rx_arm(&uart_runtime, 8) != AstraStatusOk ||
+       !uart_runtime.uart_rx_active ||
+       uart_runtime.uart_rx_runs != 1 ||
+       uart_runtime.uart_rx_bytes_expected != 8 ||
+       uart_runtime.uart_rx_bytes_received != 0 ||
+       uart_runtime.uart_rx_state != AstraeonUARTRxStateArmed ||
+       uart_runtime.uart_rx_status != AstraStatusInternalError) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_rx_arm(&uart_runtime, 8) != AstraStatusBusy ||
+       !uart_runtime.uart_rx_active ||
+       uart_runtime.uart_rx_runs != 1 ||
+       uart_runtime.uart_rx_status != AstraStatusBusy) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_rx_record(&uart_runtime, 4, 1, 2) != AstraStatusOk ||
+       uart_runtime.uart_rx_bytes_received != 4 ||
+       uart_runtime.uart_rx_overflow_count != 1 ||
+       uart_runtime.uart_rx_error_count != 2) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_rx_finish(&uart_runtime, AstraStatusOk) != AstraStatusOk ||
+       uart_runtime.uart_rx_active ||
+       !uart_runtime.uart_rx_ok ||
+       uart_runtime.uart_rx_state != AstraeonUARTRxStateCompleted ||
+       !uart_runtime.uart_session_active ||
+       uart_runtime.uart_state != AstraeonUARTSessionStateActive) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_rx_arm(&uart_runtime, 8) != AstraStatusOk) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_rx_timeout(&uart_runtime) != AstraStatusTimeout ||
+       uart_runtime.uart_rx_active ||
+       uart_runtime.uart_rx_ok ||
+       uart_runtime.uart_rx_timeout_count != 1 ||
+       uart_runtime.uart_rx_state != AstraeonUARTRxStateError ||
+       uart_runtime.uart_rx_status != AstraStatusTimeout) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_rx_arm(&uart_runtime, 8) != AstraStatusOk) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_rx_cancel(&uart_runtime) != AstraStatusPolicyDenied ||
+       uart_runtime.uart_rx_active ||
+       uart_runtime.uart_rx_ok ||
+       uart_runtime.uart_rx_state != AstraeonUARTRxStateError ||
+       uart_runtime.uart_rx_status != AstraStatusPolicyDenied) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_rx_arm(&uart_runtime, 8) != AstraStatusOk) {
+        return false;
+    }
+
     if(astraeon_runtime_uart_close_begin(&uart_runtime) != AstraStatusOk ||
-       uart_runtime.uart_state != AstraeonUARTSessionStateClosing) {
+       uart_runtime.uart_state != AstraeonUARTSessionStateClosing ||
+       uart_runtime.uart_rx_active ||
+       uart_runtime.uart_rx_state != AstraeonUARTRxStateIdle) {
         return false;
     }
 
@@ -625,7 +693,16 @@ bool astra_test_device(void) {
     if(astraeon_runtime_uart_finish(&uart_runtime, AstraStatusOk) != AstraStatusOk ||
        uart_runtime.uart_session_active ||
        !uart_runtime.uart_ok ||
-       uart_runtime.uart_state != AstraeonUARTSessionStateClosed) {
+       uart_runtime.uart_state != AstraeonUARTSessionStateClosed ||
+       uart_runtime.uart_rx_active ||
+       uart_runtime.uart_rx_state != AstraeonUARTRxStateIdle) {
+        return false;
+    }
+
+    uart_runtime = (AstraeonRuntimeContext){0};
+    if(astraeon_runtime_uart_rx_arm(&uart_runtime, 8) != AstraStatusPermissionDenied ||
+       uart_runtime.uart_rx_status != AstraStatusPermissionDenied ||
+       uart_runtime.uart_rx_runs != 0) {
         return false;
     }
 
@@ -651,6 +728,12 @@ bool astra_test_device(void) {
            (uint32_t)sizeof(serial_tx_payload)) != AstraStatusInvalidArgument ||
        uart_runtime.uart_tx_status != AstraStatusInvalidArgument ||
        uart_runtime.uart_tx_runs != 0) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_rx_arm(&uart_runtime, 8) != AstraStatusInvalidArgument ||
+       uart_runtime.uart_rx_status != AstraStatusInvalidArgument ||
+       uart_runtime.uart_rx_runs != 0) {
         return false;
     }
 

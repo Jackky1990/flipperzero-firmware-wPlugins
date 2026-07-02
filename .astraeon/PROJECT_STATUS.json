@@ -1,11 +1,11 @@
 {
   "project": "ASTRAEON-X",
   "orchestrator": "AEO",
-  "phase": "R8E-4A UART Validation Trigger",
+  "phase": "R8F-1 UART RX Runtime Foundation",
   "status": "COMPLETED",
   "health": "GREEN",
   "blocker": "R7D-5C hardware validation remains blocked until LED + 330Ω/1kΩ resistor or validated hardware test board is available",
-  "next_task": "R8E-4 UART TX Hardware Execution with USB-UART adapter",
+  "next_task": "R8F-2 UART RX Adapter Primitive",
   "source_of_truth": "git",
   "roles": {
     "architect": "ChatGPT",

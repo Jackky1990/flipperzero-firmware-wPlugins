@@ -24,6 +24,13 @@ typedef enum {
     AstraeonUARTSessionStateError,
 } AstraeonUARTSessionState;
 
+typedef enum {
+    AstraeonUARTRxStateIdle = 0,
+    AstraeonUARTRxStateArmed,
+    AstraeonUARTRxStateCompleted,
+    AstraeonUARTRxStateError,
+} AstraeonUARTRxState;
+
 typedef struct {
     bool ready;
     bool transport_ready;
@@ -57,6 +64,9 @@ typedef struct {
     bool uart_tx_checked;
     bool uart_tx_ok;
     bool uart_tx_active;
+    bool uart_rx_checked;
+    bool uart_rx_ok;
+    bool uart_rx_active;
     bool supports_stream;
     bool supports_packets;
     bool reliable;
@@ -69,6 +79,12 @@ typedef struct {
     uint32_t uart_tx_runs;
     uint32_t uart_tx_bytes_requested;
     uint32_t uart_tx_bytes_written;
+    uint32_t uart_rx_runs;
+    uint32_t uart_rx_bytes_expected;
+    uint32_t uart_rx_bytes_received;
+    uint32_t uart_rx_timeout_count;
+    uint32_t uart_rx_overflow_count;
+    uint32_t uart_rx_error_count;
     uint32_t max_payload_size;
     uint16_t protocol_version;
     uint8_t gpio_adapter_pin_count;
@@ -83,6 +99,8 @@ typedef struct {
     uint8_t uart_state;
     uint8_t uart_release_count;
     uint8_t uart_tx_status;
+    uint8_t uart_rx_status;
+    uint8_t uart_rx_state;
 } AstraeonRuntimeContext;
 
 static inline AstraStatus
@@ -299,6 +317,8 @@ static inline AstraStatus astraeon_runtime_uart_close_begin(AstraeonRuntimeConte
         return AstraStatusInvalidArgument;
     }
 
+    runtime->uart_rx_active = false;
+    runtime->uart_rx_state = AstraeonUARTRxStateIdle;
     runtime->uart_state = AstraeonUARTSessionStateClosing;
     return AstraStatusOk;
 }
@@ -319,6 +339,8 @@ static inline AstraStatus
     runtime->uart_checked = true;
     runtime->uart_ok = status == AstraStatusOk;
     runtime->uart_session_active = false;
+    runtime->uart_rx_active = false;
+    runtime->uart_rx_state = AstraeonUARTRxStateIdle;
     runtime->uart_state =
         status == AstraStatusOk ? AstraeonUARTSessionStateClosed : AstraeonUARTSessionStateError;
     runtime->uart_status = status;
@@ -398,4 +420,98 @@ static inline AstraStatus astraeon_runtime_uart_tx_finish(
     runtime->uart_tx_bytes_written = written;
     runtime->uart_tx_status = status;
     return status;
+}
+
+static inline AstraStatus
+    astraeon_runtime_uart_rx_arm(AstraeonRuntimeContext* runtime, uint32_t expected_length) {
+    if(!runtime) {
+        return AstraStatusInvalidArgument;
+    }
+
+    runtime->uart_rx_checked = true;
+    runtime->uart_rx_ok = false;
+
+    if(runtime->uart_rx_active) {
+        runtime->uart_rx_status = AstraStatusBusy;
+        return AstraStatusBusy;
+    }
+
+    if(!runtime->uart_session_active) {
+        runtime->uart_rx_active = false;
+        runtime->uart_rx_status = AstraStatusPermissionDenied;
+        return AstraStatusPermissionDenied;
+    }
+
+    if(runtime->uart_session_id == 0 ||
+       runtime->uart_state != AstraeonUARTSessionStateActive ||
+       !runtime->uart_acquired ||
+       !runtime->uart_configured ||
+       runtime->uart_released ||
+       expected_length == 0) {
+        runtime->uart_rx_active = false;
+        runtime->uart_rx_status = AstraStatusInvalidArgument;
+        return AstraStatusInvalidArgument;
+    }
+
+    runtime->uart_rx_runs += 1;
+    runtime->uart_rx_active = true;
+    runtime->uart_rx_bytes_expected = expected_length;
+    runtime->uart_rx_bytes_received = 0;
+    runtime->uart_rx_status = AstraStatusInternalError;
+    runtime->uart_rx_state = AstraeonUARTRxStateArmed;
+    return AstraStatusOk;
+}
+
+static inline AstraStatus astraeon_runtime_uart_rx_record(
+    AstraeonRuntimeContext* runtime,
+    uint32_t received,
+    uint32_t overflow_count,
+    uint32_t error_count) {
+    if(!runtime) {
+        return AstraStatusInvalidArgument;
+    }
+
+    if(!runtime->uart_rx_active) {
+        runtime->uart_rx_checked = true;
+        runtime->uart_rx_ok = false;
+        runtime->uart_rx_status = AstraStatusPermissionDenied;
+        return AstraStatusPermissionDenied;
+    }
+
+    runtime->uart_rx_bytes_received += received;
+    runtime->uart_rx_overflow_count += overflow_count;
+    runtime->uart_rx_error_count += error_count;
+    return AstraStatusOk;
+}
+
+static inline AstraStatus
+    astraeon_runtime_uart_rx_finish(AstraeonRuntimeContext* runtime, AstraStatus status) {
+    if(!runtime) {
+        return AstraStatusInvalidArgument;
+    }
+
+    runtime->uart_rx_checked = true;
+    runtime->uart_rx_ok = status == AstraStatusOk;
+    runtime->uart_rx_active = false;
+    runtime->uart_rx_state =
+        status == AstraStatusOk ? AstraeonUARTRxStateCompleted : AstraeonUARTRxStateError;
+    runtime->uart_rx_status = status;
+    return status;
+}
+
+static inline AstraStatus astraeon_runtime_uart_rx_cancel(AstraeonRuntimeContext* runtime) {
+    if(!runtime) {
+        return AstraStatusInvalidArgument;
+    }
+
+    return astraeon_runtime_uart_rx_finish(runtime, AstraStatusPolicyDenied);
+}
+
+static inline AstraStatus astraeon_runtime_uart_rx_timeout(AstraeonRuntimeContext* runtime) {
+    if(!runtime) {
+        return AstraStatusInvalidArgument;
+    }
+
+    runtime->uart_rx_timeout_count += 1;
+    return astraeon_runtime_uart_rx_finish(runtime, AstraStatusTimeout);
 }
