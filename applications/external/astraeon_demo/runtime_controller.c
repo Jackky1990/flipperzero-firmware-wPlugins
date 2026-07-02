@@ -652,6 +652,236 @@ AstraStatus astraeon_demo_runtime_controller_uart_tx(
     return status;
 }
 
+AstraStatus astraeon_demo_runtime_controller_uart_rx_arm(
+    AstraeonRuntimeContext* runtime,
+    AstraFlipperSerialAdapter* adapter,
+    Storage* furi_storage,
+    size_t expected_length) {
+    if(!runtime || !adapter || expected_length > UINT32_MAX) {
+        return AstraStatusInvalidArgument;
+    }
+
+    AstraStatus status = astraeon_runtime_uart_rx_arm(runtime, (uint32_t)expected_length);
+    if(status != AstraStatusOk) {
+        return status;
+    }
+
+    char session_id[32];
+    snprintf(
+        session_id,
+        sizeof(session_id),
+        "EVT-FLP-UART-RX-%lu",
+        (unsigned long)runtime->uart_session_id);
+
+    AstraStorage astra_storage;
+    AstraeonStorageAdapter storage_adapter;
+    bool storage_ready =
+        astraeon_demo_runtime_check_storage(&astra_storage, &storage_adapter, furi_storage);
+
+    if(storage_ready) {
+        astraeon_demo_runtime_log_uart_step(&astra_storage, session_id, "rx-arm", status);
+    }
+
+    AstraResult result = astra_flipper_serial_adapter_start_async_rx(
+        adapter,
+        (AstraFlipperSerialChannelId)runtime->uart_channel);
+
+    if(result.status != AstraStatusOk) {
+        status = astraeon_runtime_uart_rx_finish(runtime, result.status);
+        if(storage_ready) {
+            astraeon_demo_runtime_log_uart_step(&astra_storage, session_id, "rx-error", status);
+            astraeon_demo_runtime_record_uart_session(
+                &astra_storage,
+                session_id,
+                runtime->uart_session_id,
+                status);
+        }
+        return status;
+    }
+
+    return AstraStatusOk;
+}
+
+AstraStatus astraeon_demo_runtime_controller_uart_rx_drain(
+    AstraeonRuntimeContext* runtime,
+    AstraFlipperSerialAdapter* adapter,
+    Storage* furi_storage,
+    const uint8_t* expected_data,
+    size_t expected_length,
+    size_t* out_read) {
+    if(!runtime || !adapter || !out_read || expected_length == 0 ||
+       expected_length > ASTRA_FLIPPER_SERIAL_RX_BUFFER_SIZE) {
+        return AstraStatusInvalidArgument;
+    }
+
+    *out_read = 0;
+
+    if(expected_length > 0 && !expected_data) {
+        return AstraStatusInvalidArgument;
+    }
+
+    if(!runtime->uart_rx_active) {
+        return AstraStatusPermissionDenied;
+    }
+
+    char session_id[32];
+    snprintf(
+        session_id,
+        sizeof(session_id),
+        "EVT-FLP-UART-RX-%lu",
+        (unsigned long)runtime->uart_session_id);
+
+    AstraStorage astra_storage;
+    AstraeonStorageAdapter storage_adapter;
+    bool storage_ready =
+        astraeon_demo_runtime_check_storage(&astra_storage, &storage_adapter, furi_storage);
+
+    size_t available = 0;
+    AstraResult result = astra_flipper_serial_adapter_rx_available(
+        adapter,
+        (AstraFlipperSerialChannelId)runtime->uart_channel,
+        &available);
+
+    if(result.status == AstraStatusOk) {
+        uint8_t rx_buffer[ASTRA_FLIPPER_SERIAL_RX_BUFFER_SIZE];
+        size_t read_length = available < expected_length ? available : expected_length;
+        result = astra_flipper_serial_adapter_read(
+            adapter,
+            (AstraFlipperSerialChannelId)runtime->uart_channel,
+            rx_buffer,
+            read_length,
+            out_read);
+
+        const AstraFlipperSerialChannelBinding* binding =
+            astra_flipper_serial_adapter_channel_at(adapter, (size_t)runtime->uart_channel);
+        if(binding) {
+            astraeon_runtime_uart_rx_record(
+                runtime,
+                (uint32_t)*out_read,
+                (uint32_t)binding->rx_overflow_count,
+                (uint32_t)binding->rx_error_count);
+        }
+
+        if(result.status == AstraStatusOk && *out_read < expected_length) {
+            result.status = AstraStatusTimeout;
+        } else if(
+            result.status == AstraStatusOk &&
+            memcmp(rx_buffer, expected_data, expected_length) != 0) {
+            result.status = AstraStatusProtocolError;
+        }
+    }
+
+    if(storage_ready) {
+        astraeon_demo_runtime_log_uart_step(&astra_storage, session_id, "rx-drain", result.status);
+    }
+
+    AstraResult stop_result = astra_flipper_serial_adapter_stop_async_rx(
+        adapter,
+        (AstraFlipperSerialChannelId)runtime->uart_channel);
+    AstraStatus status = result.status == AstraStatusOk ? stop_result.status : result.status;
+
+    if(status == AstraStatusTimeout) {
+        status = astraeon_runtime_uart_rx_timeout(runtime);
+    } else {
+        status = astraeon_runtime_uart_rx_finish(runtime, status);
+    }
+
+    if(storage_ready) {
+        astraeon_demo_runtime_log_uart_step(
+            &astra_storage,
+            session_id,
+            status == AstraStatusOk ? "rx-complete" :
+            status == AstraStatusTimeout ? "rx-timeout" :
+                                           "rx-error",
+            status);
+        astraeon_demo_runtime_record_uart_session(
+            &astra_storage,
+            session_id,
+            runtime->uart_session_id,
+            status);
+    }
+
+    return status;
+}
+
+AstraStatus astraeon_demo_runtime_controller_uart_rx_cancel(
+    AstraeonRuntimeContext* runtime,
+    AstraFlipperSerialAdapter* adapter,
+    Storage* furi_storage) {
+    if(!runtime || !adapter) {
+        return AstraStatusInvalidArgument;
+    }
+
+    char session_id[32];
+    snprintf(
+        session_id,
+        sizeof(session_id),
+        "EVT-FLP-UART-RX-%lu",
+        (unsigned long)runtime->uart_session_id);
+
+    AstraStorage astra_storage;
+    AstraeonStorageAdapter storage_adapter;
+    bool storage_ready =
+        astraeon_demo_runtime_check_storage(&astra_storage, &storage_adapter, furi_storage);
+
+    AstraResult stop_result = astra_flipper_serial_adapter_stop_async_rx(
+        adapter,
+        (AstraFlipperSerialChannelId)runtime->uart_channel);
+    AstraStatus status = stop_result.status == AstraStatusOk ?
+                             astraeon_runtime_uart_rx_cancel(runtime) :
+                             astraeon_runtime_uart_rx_finish(runtime, stop_result.status);
+
+    if(storage_ready) {
+        astraeon_demo_runtime_log_uart_step(&astra_storage, session_id, "rx-cancel", status);
+        astraeon_demo_runtime_record_uart_session(
+            &astra_storage,
+            session_id,
+            runtime->uart_session_id,
+            status);
+    }
+
+    return status;
+}
+
+AstraStatus astraeon_demo_runtime_controller_uart_rx_timeout(
+    AstraeonRuntimeContext* runtime,
+    AstraFlipperSerialAdapter* adapter,
+    Storage* furi_storage) {
+    if(!runtime || !adapter) {
+        return AstraStatusInvalidArgument;
+    }
+
+    char session_id[32];
+    snprintf(
+        session_id,
+        sizeof(session_id),
+        "EVT-FLP-UART-RX-%lu",
+        (unsigned long)runtime->uart_session_id);
+
+    AstraStorage astra_storage;
+    AstraeonStorageAdapter storage_adapter;
+    bool storage_ready =
+        astraeon_demo_runtime_check_storage(&astra_storage, &storage_adapter, furi_storage);
+
+    AstraResult stop_result = astra_flipper_serial_adapter_stop_async_rx(
+        adapter,
+        (AstraFlipperSerialChannelId)runtime->uart_channel);
+    AstraStatus status = stop_result.status == AstraStatusOk ?
+                             astraeon_runtime_uart_rx_timeout(runtime) :
+                             astraeon_runtime_uart_rx_finish(runtime, stop_result.status);
+
+    if(storage_ready) {
+        astraeon_demo_runtime_log_uart_step(&astra_storage, session_id, "rx-timeout", status);
+        astraeon_demo_runtime_record_uart_session(
+            &astra_storage,
+            session_id,
+            runtime->uart_session_id,
+            status);
+    }
+
+    return status;
+}
+
 AstraStatus astraeon_demo_runtime_controller_request_gpio_write(
     AstraeonRuntimeContext* runtime,
     Storage* furi_storage) {

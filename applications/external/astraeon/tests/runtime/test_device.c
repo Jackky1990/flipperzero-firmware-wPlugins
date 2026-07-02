@@ -978,6 +978,105 @@ bool astra_test_device(void) {
         return false;
     }
 
+    uart_runtime = (AstraeonRuntimeContext){0};
+    if(astraeon_runtime_uart_open_begin(&uart_runtime, &serial_config) != AstraStatusOk ||
+       astraeon_runtime_uart_mark_acquired(&uart_runtime) != AstraStatusOk ||
+       astraeon_runtime_uart_mark_configured(&uart_runtime) != AstraStatusOk ||
+       astraeon_runtime_uart_mark_active(&uart_runtime) != AstraStatusOk ||
+       astra_flipper_serial_adapter_acquire(&serial_adapter, &serial_config).status !=
+           AstraStatusOk) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_rx_arm(&uart_runtime, 3) != AstraStatusOk ||
+       astra_flipper_serial_adapter_start_async_rx(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary)
+               .status != AstraStatusOk ||
+       astra_flipper_serial_adapter_rx_isr_copy_byte(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           0x41)
+               .status != AstraStatusOk ||
+       astra_flipper_serial_adapter_rx_isr_copy_byte(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           0x53)
+               .status != AstraStatusOk ||
+       astra_flipper_serial_adapter_rx_isr_copy_byte(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           0x54)
+               .status != AstraStatusOk) {
+        return false;
+    }
+
+    serial_read = 0;
+    if(astra_flipper_serial_adapter_read(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary,
+           serial_rx_buffer,
+           3,
+           &serial_read)
+           .status != AstraStatusOk ||
+       serial_read != 3 ||
+       serial_rx_buffer[0] != 0x41 ||
+       serial_rx_buffer[1] != 0x53 ||
+       serial_rx_buffer[2] != 0x54 ||
+       astraeon_runtime_uart_rx_record(&uart_runtime, (uint32_t)serial_read, 0, 0) !=
+           AstraStatusOk ||
+       astra_flipper_serial_adapter_stop_async_rx(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary)
+               .status != AstraStatusOk ||
+       astraeon_runtime_uart_rx_finish(&uart_runtime, AstraStatusOk) != AstraStatusOk ||
+       uart_runtime.uart_rx_active ||
+       !uart_runtime.uart_rx_ok ||
+       uart_runtime.uart_rx_bytes_received != 3 ||
+       uart_runtime.uart_state != AstraeonUARTSessionStateActive) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_rx_arm(&uart_runtime, 3) != AstraStatusOk ||
+       astra_flipper_serial_adapter_start_async_rx(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary)
+               .status != AstraStatusOk ||
+       astra_flipper_serial_adapter_stop_async_rx(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary)
+               .status != AstraStatusOk ||
+       astraeon_runtime_uart_rx_timeout(&uart_runtime) != AstraStatusTimeout ||
+       uart_runtime.uart_rx_active ||
+       uart_runtime.uart_rx_status != AstraStatusTimeout ||
+       uart_runtime.uart_rx_timeout_count != 1 ||
+       !uart_runtime.uart_session_active) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_rx_arm(&uart_runtime, 3) != AstraStatusOk ||
+       astra_flipper_serial_adapter_start_async_rx(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary)
+               .status != AstraStatusOk ||
+       astra_flipper_serial_adapter_stop_async_rx(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary)
+               .status != AstraStatusOk ||
+       astraeon_runtime_uart_rx_cancel(&uart_runtime) != AstraStatusPolicyDenied ||
+       uart_runtime.uart_rx_active ||
+       uart_runtime.uart_rx_status != AstraStatusPolicyDenied ||
+       !uart_runtime.uart_session_active) {
+        return false;
+    }
+
+    if(astra_flipper_serial_adapter_release(
+           &serial_adapter,
+           AstraFlipperSerialChannelPrimary)
+           .status != AstraStatusOk) {
+        return false;
+    }
+
     if(astra_device_serial_validate(0).status != AstraStatusInvalidArgument) {
         return false;
     }

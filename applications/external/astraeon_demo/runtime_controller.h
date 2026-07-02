@@ -42,3 +42,27 @@ AstraStatus astraeon_demo_runtime_controller_uart_tx(
     const uint8_t* data,
     size_t length,
     size_t* out_written);
+
+AstraStatus astraeon_demo_runtime_controller_uart_rx_arm(
+    AstraeonRuntimeContext* runtime,
+    AstraFlipperSerialAdapter* adapter,
+    Storage* storage,
+    size_t expected_length);
+
+AstraStatus astraeon_demo_runtime_controller_uart_rx_drain(
+    AstraeonRuntimeContext* runtime,
+    AstraFlipperSerialAdapter* adapter,
+    Storage* storage,
+    const uint8_t* expected_data,
+    size_t expected_length,
+    size_t* out_read);
+
+AstraStatus astraeon_demo_runtime_controller_uart_rx_cancel(
+    AstraeonRuntimeContext* runtime,
+    AstraFlipperSerialAdapter* adapter,
+    Storage* storage);
+
+AstraStatus astraeon_demo_runtime_controller_uart_rx_timeout(
+    AstraeonRuntimeContext* runtime,
+    AstraFlipperSerialAdapter* adapter,
+    Storage* storage);

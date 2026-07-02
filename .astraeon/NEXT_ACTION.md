@@ -1,6 +1,6 @@
 # Next Action
 
-R8F-2 UART Async RX Adapter is complete. The thin Flipper serial adapter now owns bounded async RX primitives, a fixed RX ring buffer, ISR-safe byte copy, read/available/clear helpers, and diagnostics counters without controller workflow, runtime updates, UI, logging, persistence, DMA, worker thread, stream buffer, or background polling.
+R8F-3 UART RX Controller Workflow is complete. The demo controller now owns RX arm, drain, cancel, and timeout flow around the existing active UART session and thin async RX adapter primitives without UI integration, hardware validation execution, DMA, worker thread, stream buffer, USB CDC changes, expansion service changes, or firmware-core changes.
 
 ## Architecture Status
 
@@ -105,6 +105,19 @@ Approved. The current device HAL flow is:
   - duplicate stop is idempotent
   - release stops active async RX and resets RX adapter state
   - no controller workflow, runtime state update, logger, persistence, UI, DMA, worker thread, stream buffer, background polling, firmware-core change, USB CDC change, or expansion service change
+- Controller-owned UART RX workflow:
+  - requires an active UART session
+  - uses existing UART session id for RX event/log correlation
+  - arms async RX through `astra_flipper_serial_adapter_start_async_rx`
+  - drains the bounded adapter RX buffer once
+  - validates expected payload bytes when available
+  - stops async RX before complete, timeout, cancel, or error
+  - records RX diagnostics through runtime counters
+  - leaves the UART session active after RX completion, timeout, or cancel
+  - rejects inactive RX with `AstraStatusPermissionDenied`
+  - reports incomplete payload as `AstraStatusTimeout`
+  - reports payload mismatch as `AstraStatusProtocolError`
+  - no UI integration, hardware validation execution, DMA, worker thread, stream buffer, polling, USB CDC change, expansion service change, or firmware-core change
 - AEO auto release pipeline:
   - `scripts/astraeon_release.sh --auto "message"`
   - verifies repository and branch safety
@@ -127,9 +140,9 @@ Approved. The current device HAL flow is:
 - Define safe PC0 validation hardware before resuming controlled GPIO write validation.
 - Keep PC0 as the only validation target unless Architect changes the pin policy.
 - Execute R8E-4 UART TX Hardware Validation with known-good USB-UART hardware connected.
-- Implement R8F-3 UART RX Controller Workflow after Architect approval.
+- Prepare R8F-4 UART RX Hardware Validation Plan after Architect approval.
 - Keep R8E separated from RX, DMA, IRQ/callbacks, worker threads, stream buffers, USB CDC changes, expansion service changes, and firmware-core changes unless explicitly approved.
 
 ## Next Implementation Step
 
-Implement R8F-3 UART RX Controller Workflow after Architect approval. The safe boundary is controller-owned RX workflow around the existing runtime session and thin adapter primitives only: no UI unless explicitly approved, no DMA, no worker thread, no stream buffer, no USB CDC changes, no expansion service changes, no firmware-core changes, and no hardware validation execution.
+Prepare R8F-4 UART RX Hardware Validation Plan after Architect approval. The safe boundary is planning or validation packaging only unless explicitly expanded: no new RX features, no DMA, no worker thread, no stream buffer, no USB CDC changes, no expansion service changes, no firmware-core changes, and no hardware validation execution until required hardware and trigger path are approved.

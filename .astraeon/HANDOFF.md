@@ -2,7 +2,7 @@
 
 ## Current State
 
-R8F-2 UART Async RX Adapter is complete and verified.
+R8F-3 UART RX Controller Workflow is complete and verified.
 
 ## Completed
 
@@ -55,6 +55,16 @@ R8F-2 UART Async RX Adapter is complete and verified.
 - Ensured adapter release stops active async RX and resets RX adapter state.
 - Mirrored the adapter implementation into the demo SDK copy to preserve SDK drift.
 - Added host/runtime tests for start/stop, duplicate start, duplicate stop, empty buffer, full buffer, overflow counter, clear, read ordering, and wrap-around.
+- Added controller-owned UART RX arm, drain, cancel, and timeout functions.
+- Reused the existing active UART session id for RX event/log/persistence correlation.
+- Wired RX arm to `astra_flipper_serial_adapter_start_async_rx`.
+- Wired RX drain to bounded adapter available/read primitives.
+- Added expected payload validation for available RX bytes.
+- Mapped incomplete RX payload to `AstraStatusTimeout`.
+- Mapped RX payload mismatch to `AstraStatusProtocolError`.
+- Ensured async RX is stopped before completion, timeout, cancel, or error.
+- Kept the UART session active after RX workflow completion.
+- Added runtime/adapter tests for one-shot RX success, timeout, and cancel flow.
 
 ## Verification
 
@@ -70,12 +80,12 @@ R8F-2 UART Async RX Adapter is complete and verified.
 
 ## Constraints Preserved
 
-- Adapter RX primitive only.
-- No controller workflow.
-- No runtime state updates from the adapter.
+- Controller owns RX workflow.
+- Adapter remains thin.
+- Runtime state updates happen through existing runtime helpers.
 - No logger.
 - No persistence.
-- No UI.
+- No RX UI integration.
 - No `furi_hal_serial_init`.
 - No `furi_hal_serial_deinit`.
 - No DMA.
@@ -91,4 +101,4 @@ R8F-2 UART Async RX Adapter is complete and verified.
 
 ## Next Task
 
-Implement R8F-3 UART RX Controller Workflow after Architect approval.
+Prepare R8F-4 UART RX Hardware Validation Plan after Architect approval.
