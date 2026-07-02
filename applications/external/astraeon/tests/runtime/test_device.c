@@ -30,6 +30,7 @@ bool astra_test_device(void) {
     AstraFlipperGPIOAdapter gpio_adapter;
     AstraFlipperSerialAdapter serial_adapter;
     AstraeonRuntimeContext gpio_write_runtime = {0};
+    AstraeonRuntimeContext uart_runtime = {0};
     bool gpio_value = false;
     bool gpio_mode_changed = true;
     bool serial_busy = true;
@@ -409,6 +410,107 @@ bool astra_test_device(void) {
     }
 
     if(serial_busy) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_open_begin(0, &serial_config) != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_open_begin(&uart_runtime, 0) != AstraStatusInvalidArgument ||
+       uart_runtime.uart_session_active ||
+       uart_runtime.uart_runs != 0 ||
+       uart_runtime.uart_acquired ||
+       uart_runtime.uart_release_count != 0) {
+        return false;
+    }
+
+    uart_runtime = (AstraeonRuntimeContext){0};
+    serial_config.channel = AstraDeviceSerialChannelCount;
+    if(astraeon_runtime_uart_open_begin(&uart_runtime, &serial_config) !=
+           AstraStatusInvalidArgument ||
+       uart_runtime.uart_session_active ||
+       uart_runtime.uart_runs != 0 ||
+       uart_runtime.uart_acquired ||
+       uart_runtime.uart_release_count != 0) {
+        return false;
+    }
+    serial_config.channel = AstraDeviceSerialChannelPrimary;
+
+    uart_runtime = (AstraeonRuntimeContext){0};
+    if(astraeon_runtime_uart_open_begin(&uart_runtime, &serial_config) != AstraStatusOk ||
+       !uart_runtime.uart_session_active ||
+       uart_runtime.uart_runs != 1 ||
+       uart_runtime.uart_session_id != 1 ||
+       uart_runtime.uart_state != AstraeonUARTSessionStateOpenRequested ||
+       uart_runtime.uart_channel != AstraDeviceSerialChannelPrimary ||
+       uart_runtime.uart_baud_rate != 115200) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_open_begin(&uart_runtime, &serial_config) != AstraStatusBusy ||
+       !uart_runtime.uart_session_active ||
+       uart_runtime.uart_status != AstraStatusBusy) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_mark_acquired(&uart_runtime) != AstraStatusOk ||
+       !uart_runtime.uart_acquired ||
+       uart_runtime.uart_state != AstraeonUARTSessionStateAcquired) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_mark_configured(&uart_runtime) != AstraStatusOk ||
+       !uart_runtime.uart_configured ||
+       uart_runtime.uart_state != AstraeonUARTSessionStateConfigured) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_mark_active(&uart_runtime) != AstraStatusOk ||
+       uart_runtime.uart_state != AstraeonUARTSessionStateActive ||
+       uart_runtime.uart_status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_close_begin(&uart_runtime) != AstraStatusOk ||
+       uart_runtime.uart_state != AstraeonUARTSessionStateClosing) {
+        return false;
+    }
+
+    astraeon_runtime_uart_mark_release(&uart_runtime);
+    astraeon_runtime_uart_mark_release(&uart_runtime);
+    if(!uart_runtime.uart_released || uart_runtime.uart_release_count != 1) {
+        return false;
+    }
+
+    if(astraeon_runtime_uart_finish(&uart_runtime, AstraStatusOk) != AstraStatusOk ||
+       uart_runtime.uart_session_active ||
+       !uart_runtime.uart_ok ||
+       uart_runtime.uart_state != AstraeonUARTSessionStateClosed) {
+        return false;
+    }
+
+    uart_runtime = (AstraeonRuntimeContext){0};
+    astraeon_runtime_uart_open_begin(&uart_runtime, &serial_config);
+    astraeon_runtime_uart_mark_acquired(&uart_runtime);
+    if(astraeon_runtime_uart_cancel(&uart_runtime) != AstraStatusPolicyDenied ||
+       uart_runtime.uart_session_active ||
+       uart_runtime.uart_ok ||
+       !uart_runtime.uart_released ||
+       uart_runtime.uart_release_count != 1 ||
+       uart_runtime.uart_state != AstraeonUARTSessionStateError) {
+        return false;
+    }
+
+    uart_runtime = (AstraeonRuntimeContext){0};
+    astraeon_runtime_uart_open_begin(&uart_runtime, &serial_config);
+    astraeon_runtime_uart_mark_acquired(&uart_runtime);
+    if(astraeon_runtime_uart_timeout(&uart_runtime) != AstraStatusTimeout ||
+       uart_runtime.uart_session_active ||
+       uart_runtime.uart_ok ||
+       !uart_runtime.uart_released ||
+       uart_runtime.uart_release_count != 1 ||
+       uart_runtime.uart_state != AstraeonUARTSessionStateError) {
         return false;
     }
 

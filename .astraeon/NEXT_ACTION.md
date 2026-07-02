@@ -1,6 +1,6 @@
 # Next Action
 
-R8C is complete. ASTRAEON now has a thin Flipper UART adapter skeleton with channel mapping, allowlist baud validation, acquire/release ownership state, busy-state query, and host/runtime tests. It does not implement TX/RX transfer, DMA, IRQ callbacks, worker threads, stream buffers, polling, demo UI integration, runtime sessions, USB CDC changes, or firmware-core changes.
+R8D is complete. ASTRAEON now has a controller-owned UART session lifecycle for open, active, close, cancel, and timeout paths. It validates config before acquire, rejects duplicate sessions, releases exactly once after acquire, and records best-effort log/event evidence through the existing diagnostics path.
 
 ## Architecture Status
 
@@ -40,6 +40,15 @@ Approved. The current device HAL flow is:
   - busy-state query
   - minimal adapter state
   - no TX/RX, DMA, IRQ/callback, worker, polling, logging, persistence, or runtime workflow
+- Controller-owned UART session lifecycle:
+  - runtime UART session state
+  - open/close controller functions
+  - cancel/timeout handling
+  - duplicate session rejection
+  - invalid config rejection before acquire
+  - acquire/release lifecycle through the thin adapter
+  - best-effort diagnostics event/log recording
+  - no TX/RX, `furi_hal_serial_init`, `furi_hal_serial_deinit`, DMA, IRQ/callback, worker, stream buffer, polling, demo UI, USB CDC, expansion service, or firmware-core changes
 
 ## Blocker
 
@@ -51,9 +60,9 @@ Approved. The current device HAL flow is:
 - Prepare ASTRAEON Hardware Validation Board plan.
 - Define safe PC0 validation hardware before resuming controlled GPIO write validation.
 - Keep PC0 as the only validation target unless Architect changes the pin policy.
-- Design R8D UART Controller Session workflow after Architect approval.
-- Keep R8D separate from UART TX/RX data transfer unless explicitly approved.
+- Prepare R8E UART Read/Write Implementation Plan after Architect approval.
+- Keep R8E separated from DMA, IRQ/callbacks, worker threads, stream buffers, USB CDC changes, expansion service changes, and firmware-core changes unless explicitly approved.
 
 ## Next Implementation Step
 
-Prepare R8D UART Controller Session Design for Architect review. Do not add UART TX/RX data transfer, DMA, IRQ callbacks, worker threads, stream buffers, polling, USB CDC changes, expansion service changes, or firmware-core changes without explicit approval.
+Prepare R8E UART Read/Write Implementation Plan for Architect review. Do not add UART TX/RX implementation, DMA, IRQ callbacks, worker threads, stream buffers, polling, USB CDC changes, expansion service changes, or firmware-core changes without explicit approval.
