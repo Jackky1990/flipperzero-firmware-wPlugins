@@ -58,6 +58,15 @@ Expected event evidence:
 {"type":"DIAGNOSTICS_REPORT","status":"OK","target_device":"NODE01"}
 ```
 
+## UART TX Validation
+
+For TX-only UART hardware validation, follow
+`applications/external/astraeon/docs/UART_TX_HARDWARE_VALIDATION.md`.
+
+This validates only the ASTRAEON primary UART TX path at `115200 8N1` with a
+3.3V USB-UART adapter. It does not validate RX, DMA, IRQ callbacks, workers,
+polling, stream buffers, USB CDC, or expansion services.
+
 ## Current Hardware Result
 
 Hardware validation passed on connected port `/dev/cu.usbmodemflip_Ovimalur1`:

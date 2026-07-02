@@ -2,7 +2,7 @@
 
 ## Current State
 
-R8E-2 UART Controller TX Workflow is complete and verified.
+R8E-3 UART TX Hardware Validation Package is complete and verified.
 
 ## Completed
 
@@ -28,6 +28,11 @@ R8E-2 UART Controller TX Workflow is complete and verified.
 - Preserved existing UART session after TX.
 - Added best-effort UART TX log/event persistence using the existing session id.
 - Added runtime tests for inactive session, invalid session state, invalid data, zero-length TX, successful TX, and adapter failure status.
+- Added TX-only UART hardware validation guide.
+- Added primary UART connection diagram for 3.3V USB-UART validation.
+- Documented payload `ASTRAEON UART TEST 001` and expected accepted byte count `22`.
+- Documented expected terminal output, runtime diagnostics, storage evidence, failure matrix, recovery steps, and validation report template.
+- Linked the UART TX validation guide from the general hardware validation checklist.
 
 ## Verification
 
@@ -56,7 +61,8 @@ R8E-2 UART Controller TX Workflow is complete and verified.
 - No USB CDC changes.
 - No expansion service changes.
 - No firmware-core changes.
+- No hardware validation execution was performed in this documentation package phase.
 
 ## Next Task
 
-Plan R8E-3 UART TX Hardware Validation after Architect approval.
+Execute R8E-4 UART TX Hardware Validation after Architect approval and with known-good USB-UART hardware connected.
