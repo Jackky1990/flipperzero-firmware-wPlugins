@@ -2,7 +2,7 @@
 
 ## Current State
 
-R8F-3 UART RX Controller Workflow is complete and verified.
+Embedded SDK v1.0 RC1 milestone is prepared.
 
 ## Completed
 
@@ -65,6 +65,11 @@ R8F-3 UART RX Controller Workflow is complete and verified.
 - Ensured async RX is stopped before completion, timeout, cancel, or error.
 - Kept the UART session active after RX workflow completion.
 - Added runtime/adapter tests for one-shot RX success, timeout, and cancel flow.
+- Added Embedded SDK v1.0 RC1 milestone documentation.
+- Captured RC1 component matrix for GPIO, UART, Runtime, Event, Logger,
+  Persistence, CI, and Auto Release.
+- Captured completed features, blocked hardware validations, remaining roadmap,
+  and release readiness gates.
 
 ## Verification
 

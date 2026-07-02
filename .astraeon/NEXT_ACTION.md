@@ -1,6 +1,6 @@
 # Next Action
 
-R8F-3 UART RX Controller Workflow is complete. The demo controller now owns RX arm, drain, cancel, and timeout flow around the existing active UART session and thin async RX adapter primitives without UI integration, hardware validation execution, DMA, worker thread, stream buffer, USB CDC changes, expansion service changes, or firmware-core changes.
+Embedded SDK v1.0 RC1 milestone is prepared. The current software architecture is frozen as a release-candidate milestone in `applications/external/astraeon/docs/EMBEDDED_SDK_V1_RC1_MILESTONE.md` without firmware behavior changes.
 
 ## Architecture Status
 
@@ -131,8 +131,10 @@ Approved. The current device HAL flow is:
 
 ## Blocker
 
-- Need LED + 330Ω/1kΩ resistor or validated hardware test board.
+- GPIO controlled write validation needs LED + 330Ω/1kΩ resistor or validated hardware test board.
 - Do not continue GPIO hardware write validation with the damaged legacy board.
+- UART TX hardware execution needs known-good 3.3V USB-UART adapter and common GND setup.
+- UART RX hardware validation needs Architect-approved validation plan and known-good 3.3V USB-UART hardware.
 
 ## Remaining Work
 
@@ -141,6 +143,7 @@ Approved. The current device HAL flow is:
 - Keep PC0 as the only validation target unless Architect changes the pin policy.
 - Execute R8E-4 UART TX Hardware Validation with known-good USB-UART hardware connected.
 - Prepare R8F-4 UART RX Hardware Validation Plan after Architect approval.
+- Complete Embedded SDK v1.0 Release after hardware validation evidence is accepted or explicitly deferred by Architect.
 - Keep R8E separated from RX, DMA, IRQ/callbacks, worker threads, stream buffers, USB CDC changes, expansion service changes, and firmware-core changes unless explicitly approved.
 
 ## Next Implementation Step
