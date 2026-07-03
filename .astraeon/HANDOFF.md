@@ -2,8 +2,9 @@
 
 ## Current State
 
-ASTRAEON Universe Blueprint v2.0 is documented. ASTRAEON-X remains the
-preserved core platform, and Embedded SDK v1.0 RC1 remains prepared.
+ASTRAEON Universe Repository Bootstrap Plan is documented. ASTRAEON-X remains
+the preserved core platform, RogueMaster remains the Flipper reference target,
+and Embedded SDK v1.0 RC1 remains prepared.
 
 ## Completed
 
@@ -93,6 +94,16 @@ preserved core platform, and Embedded SDK v1.0 RC1 remains prepared.
   Home capability documents.
 - Added Integration Matrix, Dependency Graph, Capability Matrix, Risk Registry,
   Technical Debt, and Idea Backlog.
+- Added ASTRAEON Universe Repository Plan.
+- Added Universe Migration Guide.
+- Added Repository Ownership Matrix.
+- Added Cross-Repository Governance.
+- Added Version Compatibility Matrix.
+- Added Interface Contract Catalog.
+- Added Repository Bootstrap Guide.
+- Documented copy-first migration from RogueMaster `.astraeon/` to future
+  `ASTRAEON/astraeon-universe/` with no deletion until verification and
+  Architect approval.
 
 ## Verification
 
@@ -129,5 +140,5 @@ preserved core platform, and Embedded SDK v1.0 RC1 remains prepared.
 
 ## Next Task
 
-Review ASTRAEON Universe Blueprint v2.0 or prepare ASTRAEON-Hardware P0
-Documentation in a separate project after Architect approval.
+Create the `astraeon-universe` repository foundation after Architect approval.
+Do not move or delete RogueMaster `.astraeon/` files during bootstrap.

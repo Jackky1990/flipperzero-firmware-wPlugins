@@ -1,9 +1,9 @@
 # Next Action
 
-ASTRAEON Universe Blueprint v2.0 is documented. The ASTRAEON long-term
-ecosystem is now defined as a Physical Intelligence Platform with ASTRAEON-X as
-the preserved core platform and all implemented systems treated as protected
-assets.
+ASTRAEON Universe Repository Bootstrap Plan is documented. The next
+architecture move is to create an independent `astraeon-universe` repository as
+the future source of truth for ecosystem architecture, governance, registries,
+compatibility, and migration records.
 
 ## Architecture Status
 
@@ -141,6 +141,16 @@ Approved. The current device HAL flow is:
 
 ## Remaining Work
 
+- Use `.astraeon/UNIVERSE_REPOSITORY_PLAN.md`,
+  `.astraeon/UNIVERSE_MIGRATION_GUIDE.md`,
+  `.astraeon/REPOSITORY_OWNERSHIP_MATRIX.md`,
+  `.astraeon/CROSS_REPOSITORY_GOVERNANCE.md`,
+  `.astraeon/VERSION_COMPATIBILITY_MATRIX.md`,
+  `.astraeon/INTERFACE_CONTRACT_CATALOG.md`, and
+  `.astraeon/REPOSITORY_BOOTSTRAP_GUIDE.md` before creating the new
+  `astraeon-universe` repository.
+- Preserve RogueMaster `.astraeon/` as active local state until migration is
+  copied, verified, cross-linked, and approved.
 - Review `.astraeon/UNIVERSE_BLUEPRINT.md` as the master blueprint for future
   ASTRAEON work.
 - Use `.astraeon/PRESERVATION_REGISTRY.md` before any work that touches an
@@ -169,6 +179,5 @@ Approved. The current device HAL flow is:
 
 ## Next Implementation Step
 
-Next safe implementation depends on Architect priority: run ASTRAEON Universe
-Blueprint v2.0 Review, or prepare ASTRAEON-Hardware P0 Documentation in a
-separate project. Do not mix Probe firmware into RogueMaster.
+Next safe implementation: create the `astraeon-universe` repository foundation.
+Do not move or delete RogueMaster `.astraeon/` files during bootstrap.
