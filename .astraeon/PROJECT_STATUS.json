@@ -1,11 +1,20 @@
 {
   "project": "ASTRAEON-X",
   "orchestrator": "AEO",
-  "phase": "ASTRAEON Universe Repository Bootstrap Plan",
+  "phase": "ASTRAEON Universe Repository Cross-Link",
   "status": "COMPLETED",
   "health": "GREEN",
   "blocker": "Hardware validation remains incomplete: GPIO write needs LED + 330Ω/1kΩ resistor or validated board; UART TX/RX need known-good 3.3V USB-UART validation hardware",
-  "next_task": "Create astraeon-universe repository foundation",
+  "next_task": "ASTRAEON Universe authority transfer review",
+  "universe_repository": {
+    "status": "ONLINE",
+    "remote": "git@github.com:Jackky1990/astraeon-universe.git",
+    "local_path": "~/ASTRAEON-X/astraeon-universe",
+    "branch": "main",
+    "authority_status": "candidate source of truth",
+    "migration_policy": "copy-first; no destructive migration approved",
+    "roguemaster_astraeon_status": "active local Embedded SDK and Flipper reference target state"
+  },
   "source_of_truth": "git",
   "roles": {
     "architect": "ChatGPT",

@@ -2,9 +2,15 @@
 
 ## Current State
 
-ASTRAEON Universe Repository Bootstrap Plan is documented. ASTRAEON-X remains
-the preserved core platform, RogueMaster remains the Flipper reference target,
-and Embedded SDK v1.0 RC1 remains prepared.
+`astraeon-universe` is online at
+`git@github.com:Jackky1990/astraeon-universe.git` on branch `main`.
+ASTRAEON-X remains the preserved core platform, RogueMaster remains the active
+Flipper reference target and Embedded SDK local state repository, and Embedded
+SDK v1.0 RC1 remains prepared.
+
+Authority status: `astraeon-universe` is a candidate source of truth.
+RogueMaster `.astraeon/` remains active local project state. No destructive
+migration has been approved.
 
 ## Completed
 
@@ -104,6 +110,12 @@ and Embedded SDK v1.0 RC1 remains prepared.
 - Documented copy-first migration from RogueMaster `.astraeon/` to future
   `ASTRAEON/astraeon-universe/` with no deletion until verification and
   Architect approval.
+- Verified `astraeon-universe` publish state:
+  `git@github.com:Jackky1990/astraeon-universe.git`, branch `main`.
+- Added RogueMaster cross-link document `.astraeon/UNIVERSE_LINK.md`.
+- Recorded that `astraeon-universe` is online as a candidate source of truth.
+- Preserved RogueMaster `.astraeon/` as active Embedded SDK and Flipper
+  reference target state.
 
 ## Verification
 
@@ -140,5 +152,5 @@ and Embedded SDK v1.0 RC1 remains prepared.
 
 ## Next Task
 
-Create the `astraeon-universe` repository foundation after Architect approval.
-Do not move or delete RogueMaster `.astraeon/` files during bootstrap.
+Perform ASTRAEON Universe authority transfer review after Architect approval.
+Do not move, delete, or retire RogueMaster `.astraeon/` files during review.

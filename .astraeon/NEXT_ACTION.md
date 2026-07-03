@@ -1,9 +1,13 @@
 # Next Action
 
-ASTRAEON Universe Repository Bootstrap Plan is documented. The next
-architecture move is to create an independent `astraeon-universe` repository as
-the future source of truth for ecosystem architecture, governance, registries,
-compatibility, and migration records.
+`astraeon-universe` is online at
+`git@github.com:Jackky1990/astraeon-universe.git`.
+
+The current authority status is candidate source of truth. RogueMaster
+`.astraeon/` remains the active local Embedded SDK and Flipper reference target
+state. No destructive migration has been approved.
+
+Next architecture move: perform ASTRAEON Universe authority transfer review.
 
 ## Architecture Status
 
@@ -141,14 +145,20 @@ Approved. The current device HAL flow is:
 
 ## Remaining Work
 
+- Use `.astraeon/UNIVERSE_LINK.md` when coordinating RogueMaster with
+  `astraeon-universe`.
+- Review `astraeon-universe` completeness before changing authority status.
+- Keep RogueMaster `.astraeon/` active for local Embedded SDK and Flipper
+  reference target state.
+- Do not delete, move, or retire RogueMaster `.astraeon/` files until
+  Architect approves destructive migration or duplicate retirement.
 - Use `.astraeon/UNIVERSE_REPOSITORY_PLAN.md`,
   `.astraeon/UNIVERSE_MIGRATION_GUIDE.md`,
   `.astraeon/REPOSITORY_OWNERSHIP_MATRIX.md`,
   `.astraeon/CROSS_REPOSITORY_GOVERNANCE.md`,
   `.astraeon/VERSION_COMPATIBILITY_MATRIX.md`,
   `.astraeon/INTERFACE_CONTRACT_CATALOG.md`, and
-  `.astraeon/REPOSITORY_BOOTSTRAP_GUIDE.md` before creating the new
-  `astraeon-universe` repository.
+  `.astraeon/REPOSITORY_BOOTSTRAP_GUIDE.md` during authority transfer review.
 - Preserve RogueMaster `.astraeon/` as active local state until migration is
   copied, verified, cross-linked, and approved.
 - Review `.astraeon/UNIVERSE_BLUEPRINT.md` as the master blueprint for future
@@ -179,5 +189,5 @@ Approved. The current device HAL flow is:
 
 ## Next Implementation Step
 
-Next safe implementation: create the `astraeon-universe` repository foundation.
-Do not move or delete RogueMaster `.astraeon/` files during bootstrap.
+Next safe implementation: ASTRAEON Universe authority transfer review.
+Do not move, delete, or retire RogueMaster `.astraeon/` files during review.
