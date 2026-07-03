@@ -1,4 +1,4 @@
-# ASTRAEON Universe Blueprint v1.0
+# ASTRAEON Universe Blueprint v2.0
 
 ## Definition
 
@@ -9,6 +9,10 @@ robotics, infrastructure, data, and knowledge.
 ASTRAEON-X remains the core platform. Existing ASTRAEON-X systems are preserved
 and extended through APIs, events, plugins, registries, compatibility layers,
 and migration plans.
+
+Version 2.0 extends v1.0 with registries, capability maps, dependency maps,
+risk tracking, technical debt tracking, and idea backlog separation. It does
+not replace ASTRAEON-X systems.
 
 ## Universe Domains
 
@@ -371,3 +375,26 @@ Execution:
 
 Every future feature must answer the integration checklist in
 `.astraeon/INTEGRATION_RULES.md`.
+
+## Blueprint v2.0 Registry Set
+
+- `.astraeon/PRESERVATION_REGISTRY.md`
+- `.astraeon/PORTAL_REGISTRY.md`
+- `.astraeon/SERVICE_REGISTRY.md`
+- `.astraeon/DEVICE_REGISTRY.md`
+- `.astraeon/MODULE_REGISTRY.md`
+- `.astraeon/MISSION_REGISTRY.md`
+- `.astraeon/AI_CAPABILITY.md`
+- `.astraeon/BUSINESS_CAPABILITY.md`
+- `.astraeon/COMMUNICATION_CAPABILITY.md`
+- `.astraeon/HARDWARE_CAPABILITY.md`
+- `.astraeon/VISION_CAPABILITY.md`
+- `.astraeon/KNOWLEDGE_CAPABILITY.md`
+- `.astraeon/MEDIA_CAPABILITY.md`
+- `.astraeon/HOME_CAPABILITY.md`
+- `.astraeon/INTEGRATION_MATRIX.md`
+- `.astraeon/DEPENDENCY_GRAPH.md`
+- `.astraeon/CAPABILITY_MATRIX.md`
+- `.astraeon/RISK_REGISTRY.md`
+- `.astraeon/TECHNICAL_DEBT.md`
+- `.astraeon/IDEA_BACKLOG.md`

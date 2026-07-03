@@ -2,7 +2,7 @@
 
 ## Current State
 
-ASTRAEON Universe Blueprint v1.0 is documented. ASTRAEON-X remains the
+ASTRAEON Universe Blueprint v2.0 is documented. ASTRAEON-X remains the
 preserved core platform, and Embedded SDK v1.0 RC1 remains prepared.
 
 ## Completed
@@ -87,6 +87,12 @@ preserved core platform, and Embedded SDK v1.0 RC1 remains prepared.
   robotics, cloud, data, digital twin, and developer domains.
 - Preserved ASTRAEON-X systems through the rule:
   Preserve -> Verify -> Enhance -> Integrate.
+- Upgraded ASTRAEON Universe Blueprint to v2.0.
+- Added Preservation, Portal, Service, Device, Module, and Mission registries.
+- Added AI, Business, Communication, Hardware, Vision, Knowledge, Media, and
+  Home capability documents.
+- Added Integration Matrix, Dependency Graph, Capability Matrix, Risk Registry,
+  Technical Debt, and Idea Backlog.
 
 ## Verification
 
@@ -123,5 +129,5 @@ preserved core platform, and Embedded SDK v1.0 RC1 remains prepared.
 
 ## Next Task
 
-Review ASTRAEON Universe Blueprint v1.0 or prepare ASTRAEON-Hardware P0
+Review ASTRAEON Universe Blueprint v2.0 or prepare ASTRAEON-Hardware P0
 Documentation in a separate project after Architect approval.

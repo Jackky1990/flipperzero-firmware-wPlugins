@@ -5,13 +5,19 @@
 Every future feature must answer:
 
 1. Which layer owns it?
-2. Which event does it emit?
+2. Who owns it?
 3. Which API does it expose?
-4. Which registry records it?
+4. Which events does it emit?
 5. Which knowledge does it create or update?
-6. Which dashboard or portal shows it?
-7. Which permission or policy gates it?
-8. How does it preserve existing ASTRAEON-X systems?
+6. Which portal or dashboard shows it?
+7. Which mission owns the workflow?
+8. Which permission or policy gates it?
+9. Which registry records it?
+10. Which documentation describes it?
+11. Which compatibility boundary protects existing systems?
+12. What is the preservation impact?
+
+If any answer is missing, do not implement.
 
 ## Preservation Rule
 

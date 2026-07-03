@@ -1,8 +1,9 @@
 # Next Action
 
-ASTRAEON Universe Blueprint v1.0 is documented. The ASTRAEON long-term
+ASTRAEON Universe Blueprint v2.0 is documented. The ASTRAEON long-term
 ecosystem is now defined as a Physical Intelligence Platform with ASTRAEON-X as
-the preserved core platform.
+the preserved core platform and all implemented systems treated as protected
+assets.
 
 ## Architecture Status
 
@@ -142,6 +143,11 @@ Approved. The current device HAL flow is:
 
 - Review `.astraeon/UNIVERSE_BLUEPRINT.md` as the master blueprint for future
   ASTRAEON work.
+- Use `.astraeon/PRESERVATION_REGISTRY.md` before any work that touches an
+  existing ASTRAEON-X system.
+- Use the v2.0 registries and capability documents before adding portals,
+  services, devices, modules, missions, AI, business, communication, hardware,
+  vision, knowledge, media, or home features.
 - Use `.astraeon/DOMAIN_MAP.md`, `.astraeon/SERVICE_MAP.md`,
   `.astraeon/API_MAP.md`, `.astraeon/EVENT_MAP.md`, `.astraeon/DATA_MAP.md`,
   `.astraeon/PORTAL_MAP.md`, `.astraeon/INTEGRATION_RULES.md`,
@@ -164,5 +170,5 @@ Approved. The current device HAL flow is:
 ## Next Implementation Step
 
 Next safe implementation depends on Architect priority: run ASTRAEON Universe
-Blueprint Review, or prepare ASTRAEON-Hardware P0 Documentation in a separate
-project. Do not mix Probe firmware into RogueMaster.
+Blueprint v2.0 Review, or prepare ASTRAEON-Hardware P0 Documentation in a
+separate project. Do not mix Probe firmware into RogueMaster.
