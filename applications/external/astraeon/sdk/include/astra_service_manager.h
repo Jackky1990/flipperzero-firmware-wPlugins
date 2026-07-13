@@ -28,6 +28,12 @@ typedef enum {
     AstraServiceHealthUnhealthy,
 } AstraServiceHealth;
 
+typedef enum {
+    AstraServiceRecoveryNoRetry = 0,
+    AstraServiceRecoveryRetryOnce,
+    AstraServiceRecoveryContinueAllowed,
+} AstraServiceRecoveryPolicy;
+
 typedef AstraResult (*AstraServiceLifecycleCallback)(void* context);
 typedef AstraServiceHealth (*AstraServiceHealthCallback)(void* context);
 
@@ -57,6 +63,12 @@ typedef struct {
     AstraService services[ASTRA_SERVICE_MANAGER_MAX_SERVICES];
     size_t start_order[ASTRA_SERVICE_MANAGER_MAX_SERVICES];
     size_t started_count;
+    AstraResult last_start_failure;
+    AstraResult last_rollback_failure;
+    size_t failed_service_index;
+    bool has_start_failure;
+    bool has_rollback_failure;
+    bool recovery_attempted;
 } AstraServiceManager;
 
 AstraResult astra_service_manager_init(void);
@@ -69,6 +81,9 @@ AstraResult astra_service_manager_validate(void);
 AstraResult astra_service_manager_start_all(void);
 AstraResult astra_service_manager_shutdown(void);
 AstraResult astra_service_manager_health_aggregate(AstraServiceHealth* health);
+AstraResult astra_service_manager_recover(AstraServiceRecoveryPolicy policy);
+AstraResult astra_service_manager_last_start_failure(AstraResult* failure);
+AstraResult astra_service_manager_last_rollback_failure(AstraResult* failure);
 
 AstraResult astra_service_manager_init_context(struct AstraRuntimeContext* context);
 AstraResult astra_service_manager_register_context(
@@ -93,6 +108,15 @@ AstraResult astra_service_manager_shutdown_context(struct AstraRuntimeContext* c
 AstraResult astra_service_manager_health_aggregate_context(
     struct AstraRuntimeContext* context,
     AstraServiceHealth* health);
+AstraResult astra_service_manager_recover_context(
+    struct AstraRuntimeContext* context,
+    AstraServiceRecoveryPolicy policy);
+AstraResult astra_service_manager_last_start_failure_context(
+    struct AstraRuntimeContext* context,
+    AstraResult* failure);
+AstraResult astra_service_manager_last_rollback_failure_context(
+    struct AstraRuntimeContext* context,
+    AstraResult* failure);
 
 #ifdef __cplusplus
 }
