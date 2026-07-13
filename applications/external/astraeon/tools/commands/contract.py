@@ -17,6 +17,7 @@ WRAPPER_MODULES = [
     "astra_event_bus",
     "astra_dispatcher",
     "astra_runtime_loop",
+    "astra_service_manager",
 ]
 
 IGNORE_TEST_REFERENCE_PREFIXES = [

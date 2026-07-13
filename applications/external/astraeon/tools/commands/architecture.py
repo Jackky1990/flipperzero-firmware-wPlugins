@@ -10,6 +10,7 @@ MODULES = [
     "astra_event_bus",
     "astra_dispatcher",
     "astra_runtime_loop",
+    "astra_service_manager",
 ]
 
 GLOBAL_PATTERNS = [

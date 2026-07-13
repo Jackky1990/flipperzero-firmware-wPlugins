@@ -25,7 +25,7 @@ AstraResult astra_runtime_context_init(
 
     context->initialized = true;
 
-    return astra_result_ok();
+    return astra_service_manager_init_context(context);
 }
 
 AstraResult astra_runtime_context_reset(

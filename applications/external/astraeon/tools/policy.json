@@ -29,7 +29,8 @@
       "astra_runtime_capabilities",
       "astra_runtime_heartbeat",
       "astra_runtime_config",
-      "astra_runtime_ping"
+      "astra_runtime_ping",
+      "astra_service_manager"
     ],
     "services": [],
     "application": []
