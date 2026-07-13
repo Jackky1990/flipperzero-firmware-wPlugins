@@ -10,6 +10,7 @@ extern "C" {
 #endif
 
 #define ASTRA_SERVICE_MANAGER_MAX_SERVICES 8
+#define ASTRA_SERVICE_MAX_DEPENDENCIES 4
 #define ASTRA_SERVICE_NAME_MAX_LENGTH 31
 
 struct AstraRuntimeContext;
@@ -36,6 +37,8 @@ typedef struct {
     AstraServiceLifecycleCallback stop;
     AstraServiceHealthCallback health;
     void* context;
+    const char* const* dependencies;
+    size_t dependency_count;
 } AstraServiceDefinition;
 
 typedef struct {
@@ -44,12 +47,16 @@ typedef struct {
     AstraServiceLifecycleCallback stop;
     AstraServiceHealthCallback health;
     void* context;
+    char dependencies[ASTRA_SERVICE_MAX_DEPENDENCIES][ASTRA_SERVICE_NAME_MAX_LENGTH + 1];
+    size_t dependency_count;
     AstraServiceState state;
     bool used;
 } AstraService;
 
 typedef struct {
     AstraService services[ASTRA_SERVICE_MANAGER_MAX_SERVICES];
+    size_t start_order[ASTRA_SERVICE_MANAGER_MAX_SERVICES];
+    size_t started_count;
 } AstraServiceManager;
 
 AstraResult astra_service_manager_init(void);
@@ -58,6 +65,10 @@ AstraResult astra_service_manager_start(const char* name);
 AstraResult astra_service_manager_stop(const char* name);
 const AstraService* astra_service_manager_find(const char* name);
 AstraResult astra_service_manager_health(const char* name, AstraServiceHealth* health);
+AstraResult astra_service_manager_validate(void);
+AstraResult astra_service_manager_start_all(void);
+AstraResult astra_service_manager_shutdown(void);
+AstraResult astra_service_manager_health_aggregate(AstraServiceHealth* health);
 
 AstraResult astra_service_manager_init_context(struct AstraRuntimeContext* context);
 AstraResult astra_service_manager_register_context(
@@ -75,6 +86,12 @@ const AstraService* astra_service_manager_find_context(
 AstraResult astra_service_manager_health_context(
     struct AstraRuntimeContext* context,
     const char* name,
+    AstraServiceHealth* health);
+AstraResult astra_service_manager_validate_context(struct AstraRuntimeContext* context);
+AstraResult astra_service_manager_start_all_context(struct AstraRuntimeContext* context);
+AstraResult astra_service_manager_shutdown_context(struct AstraRuntimeContext* context);
+AstraResult astra_service_manager_health_aggregate_context(
+    struct AstraRuntimeContext* context,
     AstraServiceHealth* health);
 
 #ifdef __cplusplus

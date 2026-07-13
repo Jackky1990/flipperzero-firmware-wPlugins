@@ -5,6 +5,8 @@
 #include "astra_runtime_context.h"
 #include "astra_runtime_default.h"
 
+#define ASTRA_SERVICE_INDEX_NONE ASTRA_SERVICE_MANAGER_MAX_SERVICES
+
 static AstraServiceManager* astra_service_manager_from_context(AstraRuntimeContext* context) {
     if(!context) {
         return 0;
@@ -40,6 +42,155 @@ static AstraService* astra_service_manager_find_mutable(
     return 0;
 }
 
+static size_t astra_service_manager_find_index(
+    AstraServiceManager* manager,
+    const char* name) {
+    AstraService* service = astra_service_manager_find_mutable(manager, name);
+    if(!service) {
+        return ASTRA_SERVICE_INDEX_NONE;
+    }
+    return (size_t)(service - manager->services);
+}
+
+static AstraResult astra_service_manager_validate_state(AstraServiceManager* manager) {
+    if(!manager || manager->started_count > ASTRA_SERVICE_MANAGER_MAX_SERVICES) {
+        return astra_result_error(AstraStatusInternalError, "service manager state is invalid");
+    }
+
+    bool recorded[ASTRA_SERVICE_MANAGER_MAX_SERVICES] = {false};
+    for(size_t position = 0; position < manager->started_count; position++) {
+        size_t index = manager->start_order[position];
+        if(index >= ASTRA_SERVICE_MANAGER_MAX_SERVICES || recorded[index] ||
+           !manager->services[index].used ||
+           manager->services[index].state != AstraServiceStateRunning) {
+            return astra_result_error(AstraStatusInternalError, "service start order is invalid");
+        }
+        recorded[index] = true;
+    }
+
+    for(size_t index = 0; index < ASTRA_SERVICE_MANAGER_MAX_SERVICES; index++) {
+        AstraService* service = &manager->services[index];
+        if(!service->used) {
+            continue;
+        }
+        if(service->state != AstraServiceStateStopped &&
+           service->state != AstraServiceStateRunning) {
+            return astra_result_error(AstraStatusInternalError, "service state is invalid");
+        }
+        if((service->state == AstraServiceStateRunning) != recorded[index]) {
+            return astra_result_error(AstraStatusInternalError, "service state is not recorded");
+        }
+    }
+    return astra_result_ok();
+}
+
+static AstraResult astra_service_manager_visit(
+    AstraServiceManager* manager,
+    size_t index,
+    unsigned char* marks,
+    size_t* order,
+    size_t* order_count) {
+    if(marks[index] == 1) {
+        return astra_result_error(AstraStatusInvalidArgument, "service dependency cycle detected");
+    }
+    if(marks[index] == 2) {
+        return astra_result_ok();
+    }
+
+    marks[index] = 1;
+    AstraService* service = &manager->services[index];
+    for(size_t dependency = 0; dependency < service->dependency_count; dependency++) {
+        size_t dependency_index = astra_service_manager_find_index(
+            manager,
+            service->dependencies[dependency]);
+        if(dependency_index == ASTRA_SERVICE_INDEX_NONE) {
+            return astra_result_error(AstraStatusNotFound, "service dependency not found");
+        }
+        AstraResult result = astra_service_manager_visit(
+            manager,
+            dependency_index,
+            marks,
+            order,
+            order_count);
+        if(result.status != AstraStatusOk) {
+            return result;
+        }
+    }
+
+    marks[index] = 2;
+    order[(*order_count)++] = index;
+    return astra_result_ok();
+}
+
+static AstraResult astra_service_manager_build_order(
+    AstraServiceManager* manager,
+    size_t target,
+    size_t* order,
+    size_t* order_count) {
+    unsigned char marks[ASTRA_SERVICE_MANAGER_MAX_SERVICES] = {0};
+    *order_count = 0;
+
+    if(target != ASTRA_SERVICE_INDEX_NONE) {
+        return astra_service_manager_visit(manager, target, marks, order, order_count);
+    }
+
+    for(size_t index = 0; index < ASTRA_SERVICE_MANAGER_MAX_SERVICES; index++) {
+        if(manager->services[index].used) {
+            AstraResult result = astra_service_manager_visit(
+                manager,
+                index,
+                marks,
+                order,
+                order_count);
+            if(result.status != AstraStatusOk) {
+                return result;
+            }
+        }
+    }
+    return astra_result_ok();
+}
+
+static void astra_service_manager_record_start(AstraServiceManager* manager, size_t index) {
+    for(size_t position = 0; position < manager->started_count; position++) {
+        if(manager->start_order[position] == index) {
+            return;
+        }
+    }
+    manager->start_order[manager->started_count++] = index;
+}
+
+static void astra_service_manager_remove_start(AstraServiceManager* manager, size_t index) {
+    for(size_t position = 0; position < manager->started_count; position++) {
+        if(manager->start_order[position] == index) {
+            for(size_t next = position + 1; next < manager->started_count; next++) {
+                manager->start_order[next - 1] = manager->start_order[next];
+            }
+            manager->started_count--;
+            return;
+        }
+    }
+}
+
+static AstraResult astra_service_manager_start_order(
+    AstraServiceManager* manager,
+    const size_t* order,
+    size_t order_count) {
+    for(size_t position = 0; position < order_count; position++) {
+        size_t index = order[position];
+        AstraService* service = &manager->services[index];
+        if(service->state == AstraServiceStateRunning) {
+            continue;
+        }
+        AstraResult result = service->start(service->context);
+        if(result.status != AstraStatusOk) {
+            return result;
+        }
+        service->state = AstraServiceStateRunning;
+        astra_service_manager_record_start(manager, index);
+    }
+    return astra_result_ok();
+}
+
 static AstraResult astra_service_manager_validate_definition(
     const AstraServiceDefinition* definition) {
     if(!definition || !definition->name || definition->name[0] == '\0') {
@@ -50,6 +201,23 @@ static AstraResult astra_service_manager_validate_definition(
     }
     if(!definition->start || !definition->stop) {
         return astra_result_error(AstraStatusInvalidArgument, "service lifecycle is incomplete");
+    }
+    if(definition->dependency_count > ASTRA_SERVICE_MAX_DEPENDENCIES ||
+       (definition->dependency_count > 0 && !definition->dependencies)) {
+        return astra_result_error(AstraStatusInvalidArgument, "service dependencies are invalid");
+    }
+    for(size_t index = 0; index < definition->dependency_count; index++) {
+        const char* dependency = definition->dependencies[index];
+        if(!dependency || dependency[0] == '\0' ||
+           strlen(dependency) > ASTRA_SERVICE_NAME_MAX_LENGTH ||
+           strcmp(dependency, definition->name) == 0) {
+            return astra_result_error(AstraStatusInvalidArgument, "service dependency is invalid");
+        }
+        for(size_t previous = 0; previous < index; previous++) {
+            if(strcmp(dependency, definition->dependencies[previous]) == 0) {
+                return astra_result_error(AstraStatusInvalidArgument, "service dependency is duplicated");
+            }
+        }
     }
     return astra_result_ok();
 }
@@ -78,6 +246,22 @@ AstraResult astra_service_manager_health(const char* name, AstraServiceHealth* h
     return astra_service_manager_health_context(astra_runtime_default_context(), name, health);
 }
 
+AstraResult astra_service_manager_validate(void) {
+    return astra_service_manager_validate_context(astra_runtime_default_context());
+}
+
+AstraResult astra_service_manager_start_all(void) {
+    return astra_service_manager_start_all_context(astra_runtime_default_context());
+}
+
+AstraResult astra_service_manager_shutdown(void) {
+    return astra_service_manager_shutdown_context(astra_runtime_default_context());
+}
+
+AstraResult astra_service_manager_health_aggregate(AstraServiceHealth* health) {
+    return astra_service_manager_health_aggregate_context(astra_runtime_default_context(), health);
+}
+
 AstraResult astra_service_manager_init_context(AstraRuntimeContext* context) {
     AstraServiceManager* manager = astra_service_manager_from_context(context);
     if(!manager) {
@@ -93,6 +277,11 @@ AstraResult astra_service_manager_register_context(
     AstraServiceManager* manager = astra_service_manager_from_context(context);
     if(!manager) {
         return astra_result_error(AstraStatusInvalidArgument, "context is null");
+    }
+
+    AstraResult state_result = astra_service_manager_validate_state(manager);
+    if(state_result.status != AstraStatusOk) {
+        return state_result;
     }
 
     AstraResult validation = astra_service_manager_validate_definition(definition);
@@ -112,6 +301,14 @@ AstraResult astra_service_manager_register_context(
             service->stop = definition->stop;
             service->health = definition->health;
             service->context = definition->context;
+            service->dependency_count = definition->dependency_count;
+            for(size_t dependency = 0; dependency < definition->dependency_count; dependency++) {
+                size_t dependency_length = strlen(definition->dependencies[dependency]);
+                memcpy(
+                    service->dependencies[dependency],
+                    definition->dependencies[dependency],
+                    dependency_length + 1);
+            }
             service->state = AstraServiceStateStopped;
             service->used = true;
             return astra_result_ok();
@@ -126,8 +323,13 @@ AstraResult astra_service_manager_start_context(AstraRuntimeContext* context, co
     if(validation.status != AstraStatusOk) {
         return validation;
     }
+    AstraServiceManager* manager = astra_service_manager_from_context(context);
+    AstraResult state_result = astra_service_manager_validate_state(manager);
+    if(state_result.status != AstraStatusOk) {
+        return state_result;
+    }
     AstraService* service = astra_service_manager_find_mutable(
-        astra_service_manager_from_context(context),
+        manager,
         name);
     if(!service) {
         return astra_result_error(AstraStatusNotFound, "service not found");
@@ -136,11 +338,17 @@ AstraResult astra_service_manager_start_context(AstraRuntimeContext* context, co
         return astra_result_error(AstraStatusBusy, "service is already running");
     }
 
-    AstraResult result = service->start(service->context);
-    if(result.status == AstraStatusOk) {
-        service->state = AstraServiceStateRunning;
+    size_t order[ASTRA_SERVICE_MANAGER_MAX_SERVICES];
+    size_t order_count;
+    AstraResult result = astra_service_manager_build_order(
+        manager,
+        astra_service_manager_find_index(manager, name),
+        order,
+        &order_count);
+    if(result.status != AstraStatusOk) {
+        return result;
     }
-    return result;
+    return astra_service_manager_start_order(manager, order, order_count);
 }
 
 AstraResult astra_service_manager_stop_context(AstraRuntimeContext* context, const char* name) {
@@ -148,9 +356,12 @@ AstraResult astra_service_manager_stop_context(AstraRuntimeContext* context, con
     if(validation.status != AstraStatusOk) {
         return validation;
     }
-    AstraService* service = astra_service_manager_find_mutable(
-        astra_service_manager_from_context(context),
-        name);
+    AstraServiceManager* manager = astra_service_manager_from_context(context);
+    AstraResult state_result = astra_service_manager_validate_state(manager);
+    if(state_result.status != AstraStatusOk) {
+        return state_result;
+    }
+    AstraService* service = astra_service_manager_find_mutable(manager, name);
     if(!service) {
         return astra_result_error(AstraStatusNotFound, "service not found");
     }
@@ -158,9 +369,24 @@ AstraResult astra_service_manager_stop_context(AstraRuntimeContext* context, con
         return astra_result_error(AstraStatusBusy, "service is already stopped");
     }
 
+    for(size_t index = 0; index < ASTRA_SERVICE_MANAGER_MAX_SERVICES; index++) {
+        AstraService* dependent = &manager->services[index];
+        if(!dependent->used || dependent->state != AstraServiceStateRunning) {
+            continue;
+        }
+        for(size_t dependency = 0; dependency < dependent->dependency_count; dependency++) {
+            if(strcmp(dependent->dependencies[dependency], name) == 0) {
+                return astra_result_error(AstraStatusBusy, "service has running dependents");
+            }
+        }
+    }
+
     AstraResult result = service->stop(service->context);
     if(result.status == AstraStatusOk) {
         service->state = AstraServiceStateStopped;
+        astra_service_manager_remove_start(
+            manager,
+            astra_service_manager_find_index(manager, name));
     }
     return result;
 }
@@ -186,9 +412,12 @@ AstraResult astra_service_manager_health_context(
         return validation;
     }
 
-    AstraService* service = astra_service_manager_find_mutable(
-        astra_service_manager_from_context(context),
-        name);
+    AstraServiceManager* manager = astra_service_manager_from_context(context);
+    AstraResult state_result = astra_service_manager_validate_state(manager);
+    if(state_result.status != AstraStatusOk) {
+        return state_result;
+    }
+    AstraService* service = astra_service_manager_find_mutable(manager, name);
     if(!service) {
         return astra_result_error(AstraStatusNotFound, "service not found");
     }
@@ -206,5 +435,123 @@ AstraResult astra_service_manager_health_context(
         return astra_result_error(AstraStatusInternalError, "service health is invalid");
     }
     *health = current;
+    return astra_result_ok();
+}
+
+AstraResult astra_service_manager_validate_context(AstraRuntimeContext* context) {
+    AstraServiceManager* manager = astra_service_manager_from_context(context);
+    if(!manager) {
+        return astra_result_error(AstraStatusInvalidArgument, "context is null");
+    }
+    AstraResult state_result = astra_service_manager_validate_state(manager);
+    if(state_result.status != AstraStatusOk) {
+        return state_result;
+    }
+
+    size_t order[ASTRA_SERVICE_MANAGER_MAX_SERVICES];
+    size_t order_count;
+    return astra_service_manager_build_order(
+        manager,
+        ASTRA_SERVICE_INDEX_NONE,
+        order,
+        &order_count);
+}
+
+AstraResult astra_service_manager_start_all_context(AstraRuntimeContext* context) {
+    AstraServiceManager* manager = astra_service_manager_from_context(context);
+    if(!manager) {
+        return astra_result_error(AstraStatusInvalidArgument, "context is null");
+    }
+    AstraResult validation = astra_service_manager_validate_context(context);
+    if(validation.status != AstraStatusOk) {
+        return validation;
+    }
+
+    size_t order[ASTRA_SERVICE_MANAGER_MAX_SERVICES];
+    size_t order_count;
+    AstraResult result = astra_service_manager_build_order(
+        manager,
+        ASTRA_SERVICE_INDEX_NONE,
+        order,
+        &order_count);
+    if(result.status != AstraStatusOk) {
+        return result;
+    }
+    return astra_service_manager_start_order(manager, order, order_count);
+}
+
+AstraResult astra_service_manager_shutdown_context(AstraRuntimeContext* context) {
+    AstraServiceManager* manager = astra_service_manager_from_context(context);
+    if(!manager) {
+        return astra_result_error(AstraStatusInvalidArgument, "context is null");
+    }
+    AstraResult validation = astra_service_manager_validate_state(manager);
+    if(validation.status != AstraStatusOk) {
+        return validation;
+    }
+
+    while(manager->started_count > 0) {
+        size_t index = manager->start_order[manager->started_count - 1];
+        AstraService* service = &manager->services[index];
+        AstraResult result = service->stop(service->context);
+        if(result.status != AstraStatusOk) {
+            return result;
+        }
+        service->state = AstraServiceStateStopped;
+        manager->started_count--;
+    }
+    return astra_result_ok();
+}
+
+static unsigned int astra_service_health_severity(AstraServiceHealth health) {
+    switch(health) {
+    case AstraServiceHealthHealthy:
+        return 0;
+    case AstraServiceHealthStopped:
+        return 1;
+    case AstraServiceHealthUnknown:
+        return 2;
+    case AstraServiceHealthDegraded:
+        return 3;
+    case AstraServiceHealthUnhealthy:
+        return 4;
+    default:
+        return 5;
+    }
+}
+
+AstraResult astra_service_manager_health_aggregate_context(
+    AstraRuntimeContext* context,
+    AstraServiceHealth* health) {
+    AstraServiceManager* manager = astra_service_manager_from_context(context);
+    if(!manager || !health) {
+        return astra_result_error(AstraStatusInvalidArgument, "health arguments are invalid");
+    }
+
+    AstraResult validation = astra_service_manager_validate_state(manager);
+    if(validation.status != AstraStatusOk) {
+        return validation;
+    }
+
+    bool found = false;
+    AstraServiceHealth aggregate = AstraServiceHealthHealthy;
+    for(size_t index = 0; index < ASTRA_SERVICE_MANAGER_MAX_SERVICES; index++) {
+        AstraService* service = &manager->services[index];
+        if(!service->used) {
+            continue;
+        }
+        AstraServiceHealth current;
+        AstraResult result = astra_service_manager_health_context(context, service->name, &current);
+        if(result.status != AstraStatusOk) {
+            return result;
+        }
+        if(!found || astra_service_health_severity(current) >
+                         astra_service_health_severity(aggregate)) {
+            aggregate = current;
+        }
+        found = true;
+    }
+
+    *health = found ? aggregate : AstraServiceHealthUnknown;
     return astra_result_ok();
 }

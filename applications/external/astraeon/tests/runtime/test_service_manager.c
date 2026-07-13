@@ -5,16 +5,32 @@
 #include "astra_tests.h"
 
 typedef struct {
+    char starts[ASTRA_SERVICE_MANAGER_MAX_SERVICES];
+    char stops[ASTRA_SERVICE_MANAGER_MAX_SERVICES];
+    size_t start_count;
+    size_t stop_count;
+} AstraTestServiceTrace;
+
+typedef struct {
     unsigned int starts;
     unsigned int stops;
     AstraServiceHealth health;
     bool fail_start;
     bool fail_stop;
+    char id;
+    AstraTestServiceTrace* trace;
 } AstraTestServiceState;
+
+static AstraServiceDefinition astra_test_service_definition(
+    const char* name,
+    AstraTestServiceState* state);
 
 static AstraResult astra_test_service_start(void* context) {
     AstraTestServiceState* state = context;
     state->starts++;
+    if(state->trace) {
+        state->trace->starts[state->trace->start_count++] = state->id;
+    }
     if(state->fail_start) {
         return astra_result_error(AstraStatusError, "start failed");
     }
@@ -24,10 +40,90 @@ static AstraResult astra_test_service_start(void* context) {
 static AstraResult astra_test_service_stop(void* context) {
     AstraTestServiceState* state = context;
     state->stops++;
+    if(state->trace) {
+        state->trace->stops[state->trace->stop_count++] = state->id;
+    }
     if(state->fail_stop) {
         return astra_result_error(AstraStatusError, "stop failed");
     }
     return astra_result_ok();
+}
+
+static bool astra_test_service_dependency_graph(void) {
+    AstraRuntimeContext context;
+    AstraRuntimeContext cycle_context;
+    AstraRuntimeContext missing_context;
+    AstraTestServiceTrace trace = {0};
+    AstraTestServiceState states[3] = {
+        {.health = AstraServiceHealthHealthy, .id = 'A', .trace = &trace},
+        {.health = AstraServiceHealthHealthy, .id = 'B', .trace = &trace},
+        {.health = AstraServiceHealthHealthy, .id = 'C', .trace = &trace},
+    };
+    const char* dependencies_b[] = {"alpha"};
+    const char* dependencies_c[] = {"alpha", "bravo"};
+    AstraServiceDefinition alpha = astra_test_service_definition("alpha", &states[0]);
+    AstraServiceDefinition bravo = astra_test_service_definition("bravo", &states[1]);
+    AstraServiceDefinition charlie = astra_test_service_definition("charlie", &states[2]);
+    bravo.dependencies = dependencies_b;
+    bravo.dependency_count = 1;
+    charlie.dependencies = dependencies_c;
+    charlie.dependency_count = 2;
+
+    if(astra_runtime_context_init(&context).status != AstraStatusOk) return false;
+    if(astra_service_manager_register_context(&context, &charlie).status != AstraStatusOk) return false;
+    if(astra_service_manager_register_context(&context, &bravo).status != AstraStatusOk) return false;
+    if(astra_service_manager_register_context(&context, &alpha).status != AstraStatusOk) return false;
+    if(astra_service_manager_validate_context(&context).status != AstraStatusOk) return false;
+
+    AstraServiceHealth aggregate = AstraServiceHealthUnknown;
+    if(astra_service_manager_health_aggregate_context(&context, &aggregate).status != AstraStatusOk) return false;
+    if(aggregate != AstraServiceHealthStopped) return false;
+    if(astra_service_manager_start_all_context(&context).status != AstraStatusOk) return false;
+    if(trace.start_count != 3 || memcmp(trace.starts, "ABC", 3) != 0) return false;
+    if(astra_service_manager_start_all_context(&context).status != AstraStatusOk) return false;
+    if(trace.start_count != 3) return false;
+
+    if(astra_service_manager_health_aggregate_context(&context, &aggregate).status != AstraStatusOk) return false;
+    if(aggregate != AstraServiceHealthHealthy) return false;
+    states[1].health = AstraServiceHealthDegraded;
+    if(astra_service_manager_health_aggregate_context(&context, &aggregate).status != AstraStatusOk) return false;
+    if(aggregate != AstraServiceHealthDegraded) return false;
+    states[2].health = AstraServiceHealthUnhealthy;
+    if(astra_service_manager_health_aggregate_context(&context, &aggregate).status != AstraStatusOk) return false;
+    if(aggregate != AstraServiceHealthUnhealthy) return false;
+
+    if(astra_service_manager_stop_context(&context, "alpha").status != AstraStatusBusy) return false;
+    if(astra_service_manager_shutdown_context(&context).status != AstraStatusOk) return false;
+    if(trace.stop_count != 3 || memcmp(trace.stops, "CBA", 3) != 0) return false;
+    if(astra_service_manager_shutdown_context(&context).status != AstraStatusOk) return false;
+    if(trace.stop_count != 3) return false;
+
+    if(astra_runtime_context_init(&cycle_context).status != AstraStatusOk) return false;
+    const char* dependencies_x[] = {"yankee"};
+    const char* dependencies_y[] = {"xray"};
+    AstraServiceDefinition xray = astra_test_service_definition("xray", &states[0]);
+    AstraServiceDefinition yankee = astra_test_service_definition("yankee", &states[1]);
+    xray.dependencies = dependencies_x;
+    xray.dependency_count = 1;
+    yankee.dependencies = dependencies_y;
+    yankee.dependency_count = 1;
+    if(astra_service_manager_register_context(&cycle_context, &xray).status != AstraStatusOk) return false;
+    if(astra_service_manager_register_context(&cycle_context, &yankee).status != AstraStatusOk) return false;
+    if(astra_service_manager_validate_context(&cycle_context).status != AstraStatusInvalidArgument) return false;
+    if(astra_service_manager_start_all_context(&cycle_context).status != AstraStatusInvalidArgument) return false;
+
+    if(astra_runtime_context_init(&missing_context).status != AstraStatusOk) return false;
+    const char* dependencies_missing[] = {"absent"};
+    AstraServiceDefinition missing = astra_test_service_definition("missing", &states[0]);
+    missing.dependencies = dependencies_missing;
+    missing.dependency_count = 1;
+    if(astra_service_manager_register_context(&missing_context, &missing).status != AstraStatusOk) return false;
+    if(astra_service_manager_validate_context(&missing_context).status != AstraStatusNotFound) return false;
+
+    missing_context.service_manager.services[0].state = (AstraServiceState)99;
+    if(astra_service_manager_validate_context(&missing_context).status != AstraStatusInternalError) return false;
+
+    return true;
 }
 
 static AstraServiceHealth astra_test_service_health(void* context) {
@@ -148,5 +244,5 @@ bool astra_test_service_manager(void) {
     if(astra_runtime_context_reset(&context_b).status != AstraStatusOk) return false;
     if(astra_service_manager_find_context(&context_b, "invalid-health") != 0) return false;
 
-    return true;
+    return astra_test_service_dependency_graph();
 }
