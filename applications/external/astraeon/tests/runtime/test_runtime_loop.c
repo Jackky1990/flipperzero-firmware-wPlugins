@@ -17,6 +17,8 @@ static AstraResult astra_test_runtime_loop_handler(AstraEvent* event) {
 
 bool astra_test_runtime_loop(void) {
     AstraEvent event;
+    AstraRuntimeContext context_a;
+    AstraRuntimeContext context_b;
     runtime_loop_handler_called = false;
 
     if(astra_runtime_loop_step().status != AstraStatusInvalidArgument) {
@@ -59,5 +61,45 @@ bool astra_test_runtime_loop(void) {
         return false;
     }
 
-    return astra_runtime_loop_step().status == AstraStatusInvalidArgument;
+    if(astra_runtime_loop_step().status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astra_runtime_context_init(&context_a).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_runtime_context_init(&context_b).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_scheduler_init_context(&context_b).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_runtime_loop_init_context(&context_a).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_runtime_loop_step_context(&context_b).status != AstraStatusInvalidArgument) {
+        return false;
+    }
+
+    if(astra_runtime_loop_init_context(&context_b).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_runtime_loop_shutdown_context(&context_a).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_runtime_loop_step_context(&context_b).status != AstraStatusOk) {
+        return false;
+    }
+
+    if(astra_runtime_loop_shutdown_context(&context_b).status != AstraStatusOk) {
+        return false;
+    }
+
+    return astra_runtime_loop_step_context(&context_b).status == AstraStatusInvalidArgument;
 }

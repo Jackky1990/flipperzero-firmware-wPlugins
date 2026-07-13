@@ -21,8 +21,11 @@ AstraResult astra_runtime_manager_init(void) {
     }
 
     runtimes[0].used = true;
-    astra_runtime_default_init();
-    runtimes[0].context = *astra_runtime_default_context();
+    AstraResult default_result = astra_runtime_default_init();
+    if(default_result.status != AstraStatusOk) {
+        runtimes[0].used = false;
+        return default_result;
+    }
     current_runtime_id = 0;
 
     return astra_result_ok();
@@ -67,6 +70,10 @@ AstraResult astra_runtime_destroy(AstraRuntimeId id) {
 AstraRuntimeContext* astra_runtime_get(AstraRuntimeId id) {
     if(id >= ASTRA_RUNTIME_MANAGER_MAX_RUNTIMES || !runtimes[id].used) {
         return 0;
+    }
+
+    if(id == 0) {
+        return astra_runtime_default_context();
     }
 
     return &runtimes[id].context;

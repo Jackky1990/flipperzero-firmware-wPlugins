@@ -3,49 +3,43 @@
 #include "astra_event_bus.h"
 #include "astra_runtime_default.h"
 
-typedef struct {
-    AstraEventQueue queue;
-} AstraSchedulerStore;
-
-static AstraSchedulerStore context_scheduler;
-
-static AstraSchedulerStore* astra_scheduler_store_from_context(AstraRuntimeContext* context) {
+static AstraEventQueue* astra_scheduler_queue_from_context(AstraRuntimeContext* context) {
     if(!context) {
         return 0;
     }
 
-    return (AstraSchedulerStore*)astra_runtime_context_get_scheduler(context);
+    return (AstraEventQueue*)astra_runtime_context_get_scheduler(context);
 }
 
-static AstraResult astra_scheduler_store_init(AstraSchedulerStore* store) {
-    if(!store) {
-        return astra_result_error(AstraStatusInvalidArgument, "scheduler store is null");
+static AstraResult astra_scheduler_queue_init(AstraEventQueue* queue) {
+    if(!queue) {
+        return astra_result_error(AstraStatusInvalidArgument, "scheduler queue is null");
     }
 
-    return astra_event_queue_init(&store->queue);
+    return astra_event_queue_init(queue);
 }
 
-static AstraResult astra_scheduler_store_schedule(AstraSchedulerStore* store, const AstraEvent* event) {
-    if(!store) {
-        return astra_result_error(AstraStatusInvalidArgument, "scheduler store is null");
+static AstraResult astra_scheduler_queue_schedule(AstraEventQueue* queue, const AstraEvent* event) {
+    if(!queue) {
+        return astra_result_error(AstraStatusInvalidArgument, "scheduler queue is null");
     }
 
-    return astra_event_queue_push(&store->queue, event);
+    return astra_event_queue_push(queue, event);
 }
 
-static AstraResult astra_scheduler_store_step(AstraSchedulerStore* store) {
+static AstraResult astra_scheduler_queue_step(AstraRuntimeContext* context, AstraEventQueue* queue) {
     AstraEvent event;
 
-    if(!store) {
-        return astra_result_error(AstraStatusInvalidArgument, "scheduler store is null");
+    if(!queue) {
+        return astra_result_error(AstraStatusInvalidArgument, "scheduler queue is null");
     }
 
-    AstraResult pop_result = astra_event_queue_pop(&store->queue, &event);
+    AstraResult pop_result = astra_event_queue_pop(queue, &event);
     if(pop_result.status != AstraStatusOk) {
         return pop_result;
     }
 
-    return astra_event_bus_publish(&event);
+    return astra_event_bus_publish_context(context, &event);
 }
 
 AstraResult astra_scheduler_init(void) {
@@ -65,18 +59,18 @@ AstraResult astra_scheduler_init_context(AstraRuntimeContext* context) {
         return astra_result_error(AstraStatusInvalidArgument, "context is null");
     }
 
-    AstraResult init_result = astra_scheduler_store_init(&context_scheduler);
+    AstraResult init_result = astra_scheduler_queue_init(&context->scheduler_queue);
     if(init_result.status != AstraStatusOk) {
         return init_result;
     }
 
-    return astra_runtime_context_set_scheduler(context, &context_scheduler);
+    return astra_runtime_context_set_scheduler(context, &context->scheduler_queue);
 }
 
 AstraResult astra_scheduler_schedule_context(AstraRuntimeContext* context, const AstraEvent* event) {
-    return astra_scheduler_store_schedule(astra_scheduler_store_from_context(context), event);
+    return astra_scheduler_queue_schedule(astra_scheduler_queue_from_context(context), event);
 }
 
 AstraResult astra_scheduler_step_context(AstraRuntimeContext* context) {
-    return astra_scheduler_store_step(astra_scheduler_store_from_context(context));
+    return astra_scheduler_queue_step(context, astra_scheduler_queue_from_context(context));
 }

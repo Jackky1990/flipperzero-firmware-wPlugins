@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 
+#include "astra_event_queue.h"
 #include "astra_result.h"
 
 #ifdef __cplusplus
@@ -10,6 +11,8 @@ extern "C" {
 
 typedef struct {
     bool initialized;
+    bool loop_initialized;
+    AstraEventQueue scheduler_queue;
     void* scheduler;
     void* registry;
     void* queue;

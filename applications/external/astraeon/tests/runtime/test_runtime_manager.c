@@ -24,6 +24,19 @@ bool astra_test_runtime_manager(void) {
         return false;
     }
 
+    AstraRuntimeContext* default_context = astra_runtime_default();
+    AstraRuntimeContext* manager_default_context = astra_runtime_get(0);
+
+    if(default_context != manager_default_context) {
+        return false;
+    }
+
+    default_context->queue = default_context;
+    if(manager_default_context->queue != default_context) {
+        return false;
+    }
+    default_context->queue = 0;
+
     if(astra_runtime_current_id() != 0) {
         return false;
     }
