@@ -7,8 +7,22 @@ import sys
 def run(cmd):
     return subprocess.run(cmd, text=True, capture_output=True)
 
+def scope_arguments(expected_files, allowed_scopes, clean=False):
+    if clean and (expected_files or allowed_scopes):
+        raise ValueError("--clean cannot be combined with --allow or --expect")
+
+    if clean or not (expected_files or allowed_scopes):
+        return ["--clean"]
+
+    arguments = []
+    for item in expected_files:
+        arguments.extend(["--expect", item])
+    for item in allowed_scopes:
+        arguments.extend(["--allow", item])
+    return arguments
+
 def changed_files():
-    result = run(["git", "status", "--short"])
+    result = run(["git", "status", "--short", "--untracked-files=all"])
     if result.returncode != 0:
         print(result.stderr)
         sys.exit(1)
@@ -29,6 +43,9 @@ def main():
     parser.add_argument("--expect", action="append", default=[], help="Expected changed file exactly")
     parser.add_argument("--clean", action="store_true", help="Require working tree clean")
     args = parser.parse_args()
+
+    if args.clean and (args.allow or args.expect):
+        parser.error("--clean cannot be combined with --allow or --expect")
 
     files = changed_files()
 

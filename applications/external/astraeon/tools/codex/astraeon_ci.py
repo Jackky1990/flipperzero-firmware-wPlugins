@@ -3,6 +3,8 @@ import argparse
 import subprocess
 import sys
 
+from safe_patch_audit import scope_arguments
+
 def run(cmd):
     print("[ASTRAEON CI] " + " ".join(cmd))
     result = subprocess.run(cmd)
@@ -20,13 +22,10 @@ def main():
 
     audit_cmd = ["python3", "applications/external/astraeon/tools/codex/safe_patch_audit.py"]
 
-    if args.clean:
-        audit_cmd.append("--clean")
-    else:
-        for item in args.expect:
-            audit_cmd.extend(["--expect", item])
-        for item in args.allow:
-            audit_cmd.extend(["--allow", item])
+    try:
+        audit_cmd.extend(scope_arguments(args.expect, args.allow, args.clean))
+    except ValueError as error:
+        parser.error(str(error))
 
     run(audit_cmd)
 
